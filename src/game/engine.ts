@@ -6,7 +6,7 @@ import type { Boss, CombatEvent, FeedItem, Fighter, Hazard, Phase, Prediction, R
 import { AudienceEngine } from '../simulation/audienceEngine';
 import { predictionWon } from '../simulation/payoutEngine';
 import { recordResult } from '../simulation/leaderboardEngine';
-import { money, roundMoney } from '../economy/money';
+import { formatSOL } from '../economy/currency';
 
 export class GameEngine {
   fighters: Fighter[];
@@ -91,14 +91,14 @@ export class GameEngine {
     if (type === 'team' ? !['boss', 'fighters'].includes(fighterId) : !fighter) return 'Select an available fighter.';
     const baseOdds = type === 'team' ? (fighterId === 'boss' ? 2.4 : 1.65) : type === 'winner' ? fighter!.odds : 7.2;
     const prediction: Prediction = { id: `${Date.now()}-${this.round}`, round: this.round, fighterId, fighterName: type === 'team' ? (fighterId === 'boss' ? 'The Overlord' : 'The fighters') : fighter!.name, amount, odds: quotedOdds(baseOdds, this.event), type, status: 'pending', payout: 0, createdAt: Date.now() };
-    this.save.balance = roundMoney(this.save.balance - amount);
+    this.save.balance -= amount;
     this.save.predictions.unshift(prediction);
     this.audience.addUserBet(prediction);
     this.save.transactions.unshift({ id: prediction.id, label: `${prediction.fighterName} · round ${this.round} prediction`, amount: -amount, time: Date.now() });
     this.save.predictions = this.save.predictions.slice(0, 100);
     this.save.transactions = this.save.transactions.slice(0, 100);
     this.achievement('Skin in the game');
-    this.addFeed(`You're backing ${prediction.fighterName}`, `${money(amount)} at ${prediction.odds.toFixed(2)}×`, '#d8fa42', 'prediction');
+    this.addFeed(`You're backing ${prediction.fighterName}`, `${formatSOL(amount)} at ${prediction.odds.toFixed(2)}×`, '#d8fa42', 'prediction');
     this.persist(); this.publish();
     return null;
   }
@@ -287,18 +287,18 @@ export class GameEngine {
     const outcomes = { winner: this.winner, team: teamWinner, damage: damageWinner, survival: survivor };
     for (const p of this.save.predictions.filter(p => p.round === this.round && p.status === 'pending')) {
       const payout = settlePrediction(this.save, p, predictionWon(p, outcomes));
-      this.addFeed(payout ? `Prediction won · +${money(payout)}` : `Prediction lost · ${money(p.amount)}`, `${p.fighterName} · ${p.odds.toFixed(2)}×`, payout ? '#d8fa42' : '#f58087', 'payout');
+      this.addFeed(payout ? `Prediction won · +${formatSOL(payout)}` : `Prediction lost · ${formatSOL(p.amount)}`, `${p.fighterName} · ${p.odds.toFixed(2)}×`, payout ? '#d8fa42' : '#f58087', 'payout');
       this.emit({ kind: 'payout', x: 480, y: 300, color: payout ? '#d8fa42' : '#f58087', amount: payout - p.amount });
       if (payout) this.achievement('Called it');
       if (payout && p.odds >= 8) this.achievement('Underdog believer');
     }
     this.audience.settle(outcomes, rank[0], this.save.predictions.find(p => p.round === this.round));
-    this.save.balance = roundMoney(this.save.balance + CONFIG.economy.spectatorReward);
+    this.save.balance += CONFIG.economy.spectatorReward;
     this.save.transactions.unshift({ id: `watch-${this.round}-${Date.now()}`, label: `Round ${this.round} spectator reward`, amount: CONFIG.economy.spectatorReward, time: Date.now() });
     this.save.transactions = this.save.transactions.slice(0, 100);
     this.save.roundsWatched++;
     if (this.save.roundsWatched >= 10) this.achievement('Arena regular');
-    this.addFeed(this.boss ? `${teamWinner === 'boss' ? 'The Overlord' : 'The fighters'} wins` : `${rank[0].name} takes the crown`, this.boss ? `Top damage: ${rank[0].name} · +${money(CONFIG.economy.spectatorReward)} in-game reward` : `${rank[0].roundKills} eliminations · +${money(CONFIG.economy.spectatorReward)} in-game reward`, rank[0].color, 'winner');
+    this.addFeed(this.boss ? `${teamWinner === 'boss' ? 'The Overlord' : 'The fighters'} wins` : `${rank[0].name} takes the crown`, this.boss ? `Top damage: ${rank[0].name} · +${formatSOL(CONFIG.economy.spectatorReward)} simulated SOL reward` : `${rank[0].roundKills} eliminations · +${formatSOL(CONFIG.economy.spectatorReward)} simulated SOL reward`, rank[0].color, 'winner');
     this.hazard = null;
     this.persist();
   }

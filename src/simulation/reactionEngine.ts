@@ -1,5 +1,5 @@
 import { AUDIENCE } from '../config/audience';
-import { money } from '../economy/money';
+import { formatSOL } from '../economy/currency';
 import type { AudienceSignal, Reaction, Spectator } from './types';
 
 export class ReactionEngine {
@@ -21,7 +21,7 @@ export class ReactionEngine {
       winner: [`${f} TAKES IT`, 'gg underground', `${f} believers paid`, 'run it back'],
       boss: ['THE OVERLORD???', 'everybody gang up', 'boss round. hold onto something'],
       sudden: ['SUDDEN DEATH LETS GO', 'one hit changes everything', 'this is about to get ugly'],
-      'large-bet': [`${money(event.amount ?? 0)} ON ${f}?`, `someone REALLY believes in ${f}`, 'whale in the chat 🐋'],
+      'large-bet': [`${formatSOL(event.amount ?? 0)} ON ${f}?`, `someone REALLY believes in ${f}`, 'whale in the chat 🐋'],
     };
     const count = ['upset', 'winner', 'boss'].includes(event.kind) ? 3 : 1;
     for (let i = 0; i < count; i++) {

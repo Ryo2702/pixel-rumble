@@ -23,7 +23,7 @@ export interface RoundResults {
 }
 export interface LeaderboardEntry extends BettingStats { id: string; username: string; avatar: string; rank: number; winRate: number; favoriteFighter: string; isUser: boolean; }
 export interface AudienceSave {
-  version: 1; rng: number; spectators: Spectator[]; user: Spectator; pending: AudienceBet[];
+  version: 1; currency: 'SOL'; rng: number; spectators: Spectator[]; user: Spectator; pending: AudienceBet[];
   watchers: number; lastSettledRound: number; results: RoundResults | null;
 }
 export interface AudienceSnapshot {

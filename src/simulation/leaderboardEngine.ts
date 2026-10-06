@@ -1,4 +1,4 @@
-import { roundMoney } from '../economy/money';
+import { SOL_CENTI_LAMPORTS } from '../economy/currency';
 import type { AudienceBet, BettingStats, LeaderboardEntry, LeaderboardMetric, PeriodStats, Spectator, TimeFilter } from './types';
 
 export const emptyStats = (): BettingStats => ({ totalBets: 0, wins: 0, losses: 0, profit: 0, biggestWin: 0, streak: 0, lostAmount: 0, favorites: {} });
@@ -15,8 +15,8 @@ export function recordResult(person: Spectator, bet: AudienceBet, now: number) {
   currentPeriods(person, now);
   for (const stats of [person, person.today, person.week]) {
     stats.totalBets++; stats.wins += Number(bet.status === 'won'); stats.losses += Number(bet.status === 'lost');
-    stats.profit = roundMoney(stats.profit + bet.payout - bet.amount);
-    stats.lostAmount = roundMoney(stats.lostAmount + (bet.status === 'lost' ? bet.amount : 0));
+    stats.profit += bet.payout - bet.amount;
+    stats.lostAmount += bet.status === 'lost' ? bet.amount : 0;
     stats.biggestWin = Math.max(stats.biggestWin, bet.payout);
     stats.streak = bet.status === 'won' ? stats.streak + 1 : 0;
     stats.favorites[bet.fighterId] = (stats.favorites[bet.fighterId] || 0) + 1;
@@ -42,7 +42,9 @@ export function rankSpectators(people: Spectator[], user: Spectator, metric: Lea
 export function validStats(value: unknown): value is BettingStats {
   if (!value || typeof value !== 'object') return false;
   const s = value as BettingStats;
-  return ['totalBets', 'wins', 'losses', 'biggestWin', 'streak', 'lostAmount'].every(k => typeof s[k as keyof BettingStats] === 'number' && Number.isFinite(s[k as keyof BettingStats]) && Number(s[k as keyof BettingStats]) >= 0)
-    && Number.isFinite(s.profit) && s.totalBets === s.wins + s.losses && !!s.favorites && typeof s.favorites === 'object' && !Array.isArray(s.favorites) && Object.values(s.favorites).every(v => Number.isSafeInteger(v) && v >= 0);
+  return ['totalBets', 'wins', 'losses', 'streak'].every(k => Number.isSafeInteger(s[k as keyof BettingStats]) && Number(s[k as keyof BettingStats]) >= 0)
+    && Number.isSafeInteger(s.biggestWin) && s.biggestWin >= 0 && s.biggestWin % SOL_CENTI_LAMPORTS === 0
+    && Number.isSafeInteger(s.lostAmount) && s.lostAmount >= 0 && s.lostAmount % SOL_CENTI_LAMPORTS === 0
+    && Number.isSafeInteger(s.profit) && s.profit % SOL_CENTI_LAMPORTS === 0 && s.totalBets === s.wins + s.losses && !!s.favorites && typeof s.favorites === 'object' && !Array.isArray(s.favorites) && Object.values(s.favorites).every(v => Number.isSafeInteger(v) && v >= 0);
 }
 export function validPeriod(value: unknown): value is PeriodStats { return validStats(value) && typeof (value as PeriodStats).key === 'string'; }

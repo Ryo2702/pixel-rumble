@@ -1,8 +1,10 @@
 import { useEffect, useSyncExternalStore } from 'react';
+import { verifyTokenMints } from '../solana/tokens';
 import { getLaunchablePairs } from './pairs';
 import { StonkFunError } from './errors';
 import { normalizePairs, normalizeTokens } from './adapters';
 import { getNewestTokens } from './tokens';
+import type { SolanaTokenVerification } from '../solana/types';
 import type { LaunchablePair, MarketToken } from './types';
 
 export const MARKET_CONFIG = { refreshInterval: 30_000 } as const;
@@ -63,9 +65,12 @@ class StonkFunMarketStore {
     }
     const tokens = tokensResponse ? this.mergeTokens(tokensResponse.tokens) : this.state.tokens;
     const pairs = pairsResponse ? pairsResponse.pairs : this.state.pairs;
+    const verification = tokensResponse || pairsResponse ? await verifyTokenMints([...tokens, ...pairs].map(item => item.mint)).catch(() => new Map<string, SolanaTokenVerification>()) : new Map<string, SolanaTokenVerification>();
+    const verifiedTokens = tokens.map(token => ({ ...token, onChain: verification.get(token.mint) ?? token.onChain }));
+    const verifiedPairs = pairs.map(pair => ({ ...pair, onChain: verification.get(pair.mint) ?? pair.onChain }));
     const lastUpdated = Math.max(tokensResponse?.generatedAt ?? 0, pairsResponse?.generatedAt ?? 0) || this.state.lastUpdated;
-    const hasData = tokens.length > 0 || pairs.length > 0;
-    this.setState({ status: hasData ? 'ready' : 'error', refreshing: false, tokens, pairs, lastUpdated, tokensError, pairsError, error: hasData ? null : tokensError ?? pairsError ?? 'Crypto market data is unavailable.', refresh: this.refresh });
+    const hasData = verifiedTokens.length > 0 || verifiedPairs.length > 0;
+    this.setState({ status: hasData ? 'ready' : 'error', refreshing: false, tokens: verifiedTokens, pairs: verifiedPairs, lastUpdated, tokensError, pairsError, error: hasData ? null : tokensError ?? pairsError ?? 'Crypto market data is unavailable.', refresh: this.refresh });
     this.inFlight = false;
   };
 

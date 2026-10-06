@@ -1,4 +1,5 @@
 import { AUDIENCE } from '../config/audience';
+import { randomSOLAmount } from '../economy/currency';
 import { quotedOdds } from '../economy/predictions';
 import type { Fighter, RoundEvent } from '../types';
 import type { AudienceBet, Spectator } from './types';
@@ -20,7 +21,8 @@ export function createAudienceBet(person: Spectator, fighters: Fighter[], round:
   const behavior = AUDIENCE.behavior[person.personality];
   if (random() > behavior.participation || person.balance < behavior.min) return null;
   const fighter = pickFighter(person, fighters, random);
-  const amount = Math.min(Math.floor(person.balance), Math.round((behavior.min + Math.pow(random(), 1.7) * (behavior.max - behavior.min)) / 5) * 5);
+  const amount = randomSOLAmount(behavior.min, Math.min(behavior.max, person.balance), () => Math.pow(random(), 1.7));
+  if (amount === null) return null;
   let type: AudienceBet['type'] = 'winner', fighterId = fighter.id, fighterName = fighter.name, baseOdds = fighter.odds;
   if (event === 'BOSS INVASION') {
     const pick = random();

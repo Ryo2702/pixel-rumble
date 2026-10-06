@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizePairs, normalizeTokens } from '../src/services/stonkfun/adapters';
+import { normalizePairs, normalizeTokens } from '../src/data/readonly/stonkfun/adapters';
 
 const mint = 'AB5q6mS6uhKTDDJ38kFcAG1BWQ85TYY2PEakgCkpqgzY';
 

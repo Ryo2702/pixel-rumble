@@ -1,7 +1,7 @@
 import { AUDIENCE } from '../config/audience';
 import { CONFIG } from '../config/game';
 import { quotedOdds } from '../economy/predictions';
-import { roundMoney } from '../economy/money';
+import { BET_LIMITS, GAME_CURRENCY, SOL_CENTI_LAMPORTS } from '../economy/currency';
 import { createAudienceBet } from './bettingBehavior';
 import { CrowdActivity } from './crowdActivity';
 import { currentPeriods, periodKeys, rankSpectators, recordResult } from './leaderboardEngine';
@@ -41,7 +41,7 @@ export class AudienceEngine {
 
   constructor(stored?: AudienceSave, private now: () => number = Date.now, seed = AUDIENCE.seed) {
     this.random = new SeededRandom(Number.isSafeInteger(stored?.rng) ? stored!.rng : seed);
-    const valid = stored?.version === 1 && Array.isArray(stored.spectators) && stored.spectators.length === AUDIENCE.population && stored.spectators.every(validSpectator) && new Set(stored.spectators.map(p => p.id)).size === stored.spectators.length;
+    const valid = stored?.version === 1 && stored.currency === GAME_CURRENCY.ticker && Array.isArray(stored.spectators) && stored.spectators.length === AUDIENCE.population && stored.spectators.every(validSpectator) && new Set(stored.spectators.map(p => p.id)).size === stored.spectators.length;
     this.spectators = valid ? stored.spectators : generateSpectators(this.random.next, now());
     this.user = stored?.user && validSpectator(stored.user) && stored.user.id === 'you' ? stored.user : createUser(now());
     this.people = new Map(this.spectators.map(person => [person.id, person]));
@@ -54,7 +54,7 @@ export class AudienceEngine {
     const refunded = new Set<string>();
     if (valid && Array.isArray(stored.pending)) for (const bet of stored.pending) {
       const person = this.people.get(bet?.spectatorId);
-      if (person && bet.status === 'pending' && !bet.isUser && Number.isFinite(bet.amount) && bet.amount > 0 && bet.amount <= 15000 && !refunded.has(bet.id)) { person.balance = roundMoney(person.balance + bet.amount); refunded.add(bet.id); }
+      if (person && bet.status === 'pending' && !bet.isUser && Number.isSafeInteger(bet.amount) && bet.amount % SOL_CENTI_LAMPORTS === 0 && bet.amount >= BET_LIMITS.min && bet.amount <= BET_LIMITS.max && !refunded.has(bet.id)) { person.balance += bet.amount; refunded.add(bet.id); }
     }
     this.spectators.forEach(person => currentPeriods(person, now()));
     currentPeriods(this.user, now());
@@ -78,9 +78,9 @@ export class AudienceEngine {
   }
   lock() { if (this.locked) return; this.locked = true; this.signal({ kind: 'lock' }); }
   private accept(bet: AudienceBet) {
-    this.bets.push(bet); this.total = roundMoney(this.total + bet.amount); this.count++;
+    this.bets.push(bet); this.total += bet.amount; this.count++;
     const share = this.shares.find(s => s.fighterId === bet.fighterId);
-    if (share) { share.amount = roundMoney(share.amount + bet.amount); share.count++; }
+    if (share) { share.amount += bet.amount; share.count++; }
     this.shares.forEach(s => { s.percent = this.total ? s.amount / this.total * 100 : 0; });
     if (bet.amount >= AUDIENCE.largeBet) this.signal({ kind: 'large-bet', fighter: bet.fighterName, amount: bet.amount });
   }
@@ -106,7 +106,7 @@ export class AudienceEngine {
       const person = this.queue[this.cursor++];
       const bet = createAudienceBet(person, fighters, this.round, this.event, this.random.next, this.now());
       if (!bet) continue;
-      person.balance = roundMoney(person.balance - bet.amount); this.accept(bet);
+      person.balance -= bet.amount; this.accept(bet);
     }
     // Sample a readable tape while the full book continues to process every wager.
     this.feedClock += step;
@@ -153,6 +153,6 @@ export class AudienceEngine {
     return { watchers: Math.round(this.activity.watchers), betCount: this.count, totalBets: this.total, excitement: this.activity.excitement, locked: this.locked, recentBets: this.displayBets.map(b => ({ ...b })), distribution: this.shares.map(s => ({ ...s })), reactions: [...this.reactions.messages], results: this.results, leaders: board.rows.slice(0, 5), userRank: board.user, revision: this.revision };
   }
   export(): AudienceSave {
-    return { version: 1, rng: this.random.state, spectators: this.spectators, user: this.user, pending: this.bets.filter(b => b.status === 'pending' && !b.isUser), watchers: this.activity.watchers, lastSettledRound: this.lastSettledRound, results: this.results };
+    return { version: 1, currency: GAME_CURRENCY.ticker, rng: this.random.state, spectators: this.spectators, user: this.user, pending: this.bets.filter(b => b.status === 'pending' && !b.isUser), watchers: this.activity.watchers, lastSettledRound: this.lastSettledRound, results: this.results };
   }
 }

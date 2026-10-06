@@ -147,6 +147,7 @@
   .token-address { display: flex; align-items: center; gap: 10px; padding-top: 13px; border-top: 1px solid #ffffff0a; }
   .token-address code { color: #bbc7d4; font: 9px var(--mono); }
   .token-address button { display: inline-flex; align-items: center; gap: 5px; margin-left: auto; padding: 5px 7px; color: #c7dc91; border: 1px solid #d6f65c33; border-radius: 3px; font: 7px var(--mono); }
+  .token-explorer-link { display: inline-flex; align-items: center; gap: 5px; margin-top: 12px; color: #c7dc91; font: 8px var(--mono); }
   .token-disclaimer, .pairs-note { color: #7f8997; font-size: 9px; line-height: 1.7; margin-top: 14px; }
   .pair-list { padding: 0 13px; }
   .pair-row { display: grid; grid-template-columns: 1.4fr .9fr 1.2fr auto; align-items: center; gap: 12px; min-height: 52px; border-bottom: 1px solid #ffffff06; font-size: 9px; }

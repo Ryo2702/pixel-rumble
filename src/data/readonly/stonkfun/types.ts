@@ -1,4 +1,7 @@
-export const SOLANA_NETWORK = 'mainnet-beta' as const;
+import { SOLANA_NETWORK as SOLANA_MAINNET_NETWORK } from '../solana/types';
+import type { SolanaTokenVerification } from '../solana/types';
+
+export const SOLANA_NETWORK = SOLANA_MAINNET_NETWORK;
 
 export interface StonkFunMarketFields {
   priceUsd?: number;
@@ -81,10 +84,12 @@ export interface MarketToken extends Omit<StonkFunToken, 'market'> {
   market: StonkFunMarketFields;
   history: number[];
   changePercent?: number;
+  onChain?: SolanaTokenVerification;
 }
 
 export interface LaunchablePair extends StonkFunPair {
   logoUrl?: string;
+  onChain?: SolanaTokenVerification;
 }
 
 export interface NormalizedTokens {

@@ -6,7 +6,7 @@ import { AudienceEngine } from '../src/simulation/audienceEngine';
 import { SeededRandom, generateSpectators } from '../src/simulation/spectatorGenerator';
 import { pickFighter, createAudienceBet } from '../src/simulation/bettingBehavior';
 import { emptyStats, periodKeys, rankSpectators } from '../src/simulation/leaderboardEngine';
-import { money, payoutFor, roundMoney } from '../src/economy/money';
+import { formatSOL, payoutFor, solToLamports } from '../src/economy/currency';
 import { validateWager } from '../src/economy/predictions';
 import { freshSave, loadSave } from '../src/economy/persistence';
 import type { AudienceSave } from '../src/simulation/types';
@@ -31,15 +31,15 @@ test('seeded population and behavior are reproducible, varied, and financially b
   }
 });
 
-test('crowd dollars sum exactly, odds move only while open, and accepted odds never drift', () => {
+test('crowd simulated SOL sums exactly, odds move only while open, and accepted odds never drift', () => {
   const fighters = fixture().fighters, originalOdds = fighters.map(f => f.odds);
   const audience = new AudienceEngine(undefined, () => NOW, 23);
   audience.beginRound(1, fighters, 'STANDARD RUMBLE');
   tick(audience, fighters, 22);
   const open = audience.snapshot(), accepted = structuredClone(audience.export().pending);
   assert.ok(open.betCount > 800 && open.betCount < AUDIENCE.population);
-  assert.equal(open.totalBets, roundMoney(accepted.reduce((sum, b) => sum + b.amount, 0)));
-  assert.equal(open.totalBets, roundMoney(open.distribution.reduce((sum, s) => sum + s.amount, 0)));
+  assert.equal(open.totalBets, accepted.reduce((sum, b) => sum + b.amount, 0));
+  assert.equal(open.totalBets, open.distribution.reduce((sum, s) => sum + s.amount, 0));
   assert.ok(Math.abs(open.distribution.reduce((sum, s) => sum + s.percent, 0) - 100) < 1e-8);
   assert.notDeepEqual(fighters.map(f => f.odds), originalOdds);
   assert.ok(accepted.some(b => b.amount >= AUDIENCE.largeBet));
@@ -63,12 +63,12 @@ test('audience settlement pays locked odds once and records persist across reloa
   const winner = fighters[0], outcomes = { winner: winner.id, team: 'fighters', damage: winner.id, survival: winner.id };
   const result = audience.settle(outcomes, winner)!;
   assert.equal(result.winningBets, bets.filter(b => b.fighterId === winner.id).length);
-  assert.equal(result.paid, roundMoney(bets.filter(b => b.fighterId === winner.id).reduce((sum, b) => sum + payoutFor(b.amount, b.odds), 0)));
+  assert.equal(result.paid, bets.filter(b => b.fighterId === winner.id).reduce((sum, b) => sum + payoutFor(b.amount, b.odds), 0));
   for (const bet of bets) {
     const p = audience.spectators.find(p => p.id === bet.spectatorId)!, old = initial.get(p.id)!;
     const paid = bet.fighterId === winner.id ? payoutFor(bet.amount, bet.odds) : 0;
-    assert.equal(p.balance, roundMoney(old.balance - bet.amount + paid));
-    assert.equal(p.totalBets, old.bets + 1); assert.equal(p.profit, roundMoney(old.profit + paid - bet.amount));
+    assert.equal(p.balance, old.balance - bet.amount + paid);
+    assert.equal(p.totalBets, old.bets + 1); assert.equal(p.profit, old.profit + paid - bet.amount);
   }
   const saved = structuredClone(audience.export());
   audience.settle(outcomes, winner);
@@ -84,7 +84,7 @@ test('audience settlement pays locked odds once and records persist across reloa
   assert.ok(JSON.stringify(saved).length < 2400000, 'community fits localStorage with room for the game');
 });
 
-test('interrupted crowd bets refund once; legacy saves migrate dollars and cents without resets', () => {
+test('interrupted crowd bets refund once; legacy currency saves reset safely', () => {
   const fighters = fixture().fighters, audience = new AudienceEngine(undefined, () => NOW);
   const before = new Map(audience.spectators.map(p => [p.id, p.balance]));
   audience.beginRound(1, fighters, 'STANDARD RUMBLE'); tick(audience, fighters, 5);
@@ -94,15 +94,15 @@ test('interrupted crowd bets refund once; legacy saves migrate dollars and cents
   assert.deepEqual(again.spectators, restored.spectators);
   const legacy = { ...freshSave(), version: 1, balance: 4321, roundsWatched: 4 };
   const save = loadSave({ load: () => legacy, save: () => {} });
-  assert.equal(save.version, 2); assert.equal(save.balance, 4321); assert.equal(save.roundsWatched, 4);
-  assert.equal(money(10000), '$10,000.00'); assert.equal(validateWager(50.25, 100), null);
-  assert.ok(validateWager(50.251, 100)); assert.equal(payoutFor(50.25, 2.75), 138.19);
+  assert.equal(save.version, 3); assert.equal(save.balance, solToLamports(84.5)); assert.equal(save.roundsWatched, 0);
+  assert.equal(formatSOL(solToLamports(10)), '10.00 SOL'); assert.equal(validateWager(solToLamports(0.25), solToLamports(1)), null);
+  assert.ok(validateWager(solToLamports(0.25) + 1, solToLamports(1))); assert.equal(payoutFor(solToLamports(50.25), 2.75), solToLamports(138.19));
 });
 
 test('all six ranking modes respect periods and always expose the actual user', () => {
   const rng = new SeededRandom(4), people = generateSpectators(rng.next, NOW, 6), user = { ...people.pop()!, id: 'you', username: 'YOU' };
-  user.profit = 999999; user.today.profit = -100;
-  people[0].today.profit = 999999;
+  user.profit = solToLamports(1_000_000); user.today.profit = -solToLamports(100);
+  people[0].today.profit = solToLamports(1_000_000);
   for (const metric of ['profit', 'wins', 'winRate', 'biggestWin', 'streak', 'losses'] as const) {
     const { rows, user: rank } = rankSpectators(people, user, metric, 'all', NOW);
     assert.equal(rows.length, 6); assert.ok(rank.rank >= 1 && rank.rank <= 6); assert.equal(rank.id, 'you');
@@ -122,22 +122,22 @@ test('boss bet types settle against their own outcomes; market shocks never affe
   const outcomes = { winner: 'byte', team: 'boss', damage: 'nova', survival: 'tank' };
   const expected = pending.filter(p => p.fighterId === outcomes[p.type]).reduce((sum, b) => sum + payoutFor(b.amount, b.odds), 0);
   const result = audience.settle(outcomes, fighters[0])!;
-  assert.equal(result.paid, roundMoney(expected));
+  assert.equal(result.paid, expected);
   const reactions = audience.snapshot().reactions;
   audience.signal({ kind: 'streak', fighter: 'KIRA' });
   assert.ok(audience.snapshot().reactions[0].text.includes('KIRA'));
   assert.notDeepEqual(audience.snapshot().reactions, reactions);
-  const broken = { version: 1, spectators: [null], user: null, market: [null] } as unknown as AudienceSave;
+  const broken = { version: 1, currency: 'SOL', spectators: [null], user: null, market: [null] } as unknown as AudienceSave;
   assert.doesNotThrow(() => new AudienceEngine(broken, () => NOW));
 });
 
 test('user results are included in audience summaries and persistent user rankings exactly once', () => {
   let stored: SaveData | null = null;
   const game = new GameEngine({ load: () => stored, save: s => { stored = structuredClone(s); } }, new SeededRandom(13).next);
-  game.placePrediction('byte', 50.25);
+  game.placePrediction('byte', solToLamports(0.25));
   for (let i = 0; i < 84 * 60; i++) game.update(1 / 60);
   const user = game.audience.user, result = game.audience.results!, p = game.save.predictions[0];
-  assert.equal(user.totalBets, 1); assert.equal(user.profit, roundMoney(p.payout - p.amount));
+  assert.equal(user.totalBets, 1); assert.equal(user.profit, p.payout - p.amount);
   assert.equal(result.user?.isUser, true); assert.equal(result.user?.payout, p.payout);
   assert.equal(game.getSnapshot().save.balance, game.save.balance);
   assert.equal('community' in game.getSnapshot().save, false);

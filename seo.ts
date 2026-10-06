@@ -19,13 +19,13 @@ export function siteSeo(configuredUrl?: string, indexable = false): Plugin {
   const footer = `<footer class="site-footer app-shell">
     <a class="footer-brand" href="/">PIXEL RUMBLE</a>
     <nav aria-label="Footer navigation"><a href="/">Arena</a><a href="/about.html">How It Works</a></nav>
-    <p class="footer-disclaimer">In-game credits. In-game spectators. No cash value.</p>
+    <p class="footer-disclaimer">Simulated SOL. In-game spectators. No cash value.</p>
   </footer>`;
   const about = `<main id="main-content" class="about-page">
     <nav aria-label="How it works navigation"><a href="/">← Back to the arena</a></nav>
     <h1>PIXEL RUMBLE <span>HOW IT WORKS</span></h1>
     <p>A 2D pixel-art auto-rumble game featuring automated fighters, in-game predictions, in-game audiences, leaderboards, and read-only public Solana token discovery powered by StonkFun.</p>
-    <section aria-labelledby="what"><h2 id="what">What is Pixel Rumble?</h2><p>Pixel Rumble is a 2D pixel-art auto-battle game where automated fighters compete inside dynamic arenas while spectators follow battles, predict outcomes using in-game credits, and explore real public Solana token listings from StonkFun.</p></section>
+    <section aria-labelledby="what"><h2 id="what">What is Pixel Rumble?</h2><p>Pixel Rumble is a 2D pixel-art auto-battle game where automated fighters compete inside dynamic arenas while spectators follow battles, predict outcomes using simulated SOL, and explore real public Solana token listings from StonkFun.</p></section>
     <section aria-labelledby="how"><h2 id="how">How does Pixel Rumble work?</h2><p>Players watch autonomous pixel fighters battle, inspect fighter statistics, compare in-game odds, make in-game predictions, follow in-game audience activity, track leaderboard performance, and browse read-only Solana token prices, liquidity, volume, and launchable pairs supplied by StonkFun.</p></section>
     <section aria-labelledby="money"><h2 id="money">Is Pixel Rumble real-money gambling?</h2><p>No. Pixel Rumble uses in-game balances and in-game betting mechanics for entertainment purposes. No deposits, withdrawals, real-money wagering, or cash prizes are supported.</p><p>${disclaimer}</p></section>
   </main>`;
@@ -38,7 +38,7 @@ export function siteSeo(configuredUrl?: string, indexable = false): Plugin {
       const isAbout = context.filename.endsWith('/about.html');
       const canonical = absolute(isAbout ? 'about.html' : '');
       const pageTitle = isAbout ? 'How It Works | Pixel Rumble' : title;
-      const pageDescription = isAbout ? 'Learn how Pixel Rumble works, explore its in-game economy, and follow real public Solana token data from StonkFun.' : description;
+      const pageDescription = isAbout ? 'Learn how Pixel Rumble works, explore its simulated SOL game economy, and follow real public Solana token data from StonkFun.' : description;
       const person = { '@type': 'Person', '@id': `${developer.portfolio}#person`, name: developer.name, url: developer.portfolio, jobTitle: [...developer.roles, ...developer.additionalRoles] };
       const creator = { '@id': person['@id'] };
       const schema = { '@context': 'https://schema.org', '@graph': [

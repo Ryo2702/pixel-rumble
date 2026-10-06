@@ -11,7 +11,7 @@ export class StonkFunClient {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
     try {
-      response = await this.request(`${STONKFUN_API}${path}`, { headers: { Accept: 'application/json' }, signal: controller.signal });
+      response = await this.request(`${STONKFUN_API}${path}`, { method: 'GET', headers: { Accept: 'application/json' }, signal: controller.signal });
     } catch (error) {
       throw new StonkFunError(error instanceof DOMException && error.name === 'AbortError' ? 'StonkFun request timed out.' : error instanceof Error ? error.message : 'Network request failed.');
     } finally {

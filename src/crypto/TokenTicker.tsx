@@ -1,5 +1,5 @@
 import { ArrowDown, ArrowUp, ArrowUpRight } from 'lucide-react';
-import type { MarketToken } from '../services/stonkfun/types';
+import type { MarketToken } from '../data/readonly/stonkfun/types';
 import { formatUsd } from './TokenCard';
 
 export function TokenTicker({ tokens, onSelect }: { tokens: MarketToken[]; onSelect: (token: MarketToken) => void }) {

@@ -24,7 +24,7 @@ export interface Prediction {
 export interface Transaction { id: string; label: string; amount: number; time: number; }
 export interface Settings { master: number; music: number; effects: number; sound: boolean; reducedMotion: boolean; shake: boolean; particles: number; hazards: boolean; }
 export interface SaveData {
-  version: 2; balance: number; predictions: Prediction[]; transactions: Transaction[]; settings: Settings; community?: AudienceSave;
+  version: 3; balance: number; predictions: Prediction[]; transactions: Transaction[]; settings: Settings; community?: AudienceSave;
   discoveries: string[]; achievements: string[]; roundsWatched: number; totalWon: number;
 }
 export interface FeedItem { id: number; text: string; detail: string; color: string; kind: string; time: number; }

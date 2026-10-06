@@ -10,7 +10,7 @@ import { Arena } from './components/Arena';
 import { LivePanels } from './components/LivePanels';
 import { MarketTicker } from './crypto/CryptoMarket';
 import { CrowdHUD } from './components/AudiencePanels';
-import { useStonkFunMarket } from './services/stonkfun/store';
+import { useStonkFunMarket } from './data/readonly/stonkfun/store';
 
 const Dialogs = lazy(() => import('./components/Dialogs').then(module => ({ default: module.Dialogs })));
 

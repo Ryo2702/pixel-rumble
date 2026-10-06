@@ -51,10 +51,10 @@ test('desktop predictions, profiles, settings, market, and a live round', async 
   await expect(page.locator('canvas')).toBeVisible();
   await expect(page.locator('.arena-loading')).toHaveCount(0, { timeout: 20000 });
   await page.getByLabel('Choose fighter').selectOption('nova');
-  await page.getByLabel('YOUR PREDICTION').fill('500');
-  await page.getByRole('button', { name: 'LOCK IN PREDICTION' }).click();
+  await page.getByRole('spinbutton', { name: /BET AMOUNT/ }).fill('5.00');
+  await page.getByRole('button', { name: 'PLACE BET' }).click();
   await expect(page.getByText("YOU'RE IN.")).toBeVisible();
-  await expect(page.locator('.balance-button')).toContainText('9,500');
+  await expect(page.locator('.balance-button')).toContainText('79.50 SOL');
   await expect(page.locator('.confirmed-prediction')).toContainText('NOVA');
   await page.locator('.selected-name').click();
   await expect(page.getByRole('dialog')).toBeVisible();
@@ -67,8 +67,8 @@ test('desktop predictions, profiles, settings, market, and a live round', async 
   await page.getByRole('button', { name: 'Close dialog' }).click();
   await page.getByRole('button', { name: 'View market', exact: true }).click();
   const marketDialog = page.getByRole('dialog');
-  await expect(marketDialog).toContainText('REAL SOLANA CRYPTO MARKET · POWERED BY STONKFUN');
-  await expect(marketDialog.getByText(/NEW TOKENS|CRYPTO MARKET TEMPORARILY UNAVAILABLE/)).toBeVisible();
+  await expect(marketDialog).toContainText('REAL SOLANA DATA · READ ONLY');
+  await expect(marketDialog.getByText(/NEW TOKENS|REAL SOLANA DATA TEMPORARILY UNAVAILABLE/)).toBeVisible();
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'My activity', exact: true }).click();
   await expect(page.locator('.history-row')).toContainText('NOVA');
@@ -81,13 +81,13 @@ test('desktop predictions, profiles, settings, market, and a live round', async 
   await page.screenshot({ path: '/tmp/pixel-rumble-live.png', fullPage: true });
   await expect(page.locator('.phase-indicator')).toHaveText('ROUND COMPLETE', { timeout: 50000 });
   await expect(page.locator('.confirmed-prediction')).not.toContainText("YOU'RE IN.");
-  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pixel-rumble-v2')!));
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pixel-rumble-v3')!));
   expect(stored.roundsWatched).toBe(1);
   expect(stored.predictions[0].status).not.toBe('pending');
   const balance = stored.balance;
   await page.reload();
   await expect(page.locator('.arena-round')).toContainText('002');
-  await expect(page.locator('.balance-button')).toContainText(balance.toLocaleString('en-US'));
+  await expect(page.locator('.balance-button')).toContainText(`${(balance / 1_000_000_000).toFixed(2)} SOL`);
   expect(errors).toEqual([]);
 });
 
@@ -102,11 +102,11 @@ test('mobile arena, fighter drawer, prediction, and reload refund fit without ov
   await page.getByRole('button', { name: /Select KIRA/ }).click();
   await page.getByRole('button', { name: 'Make a prediction', exact: true }).click();
   await expect(page.locator('.selected-name')).toHaveText('KIRA');
-  await page.getByLabel('YOUR PREDICTION').fill('100');
-  await page.getByRole('button', { name: 'LOCK IN PREDICTION' }).click();
+  await page.getByRole('spinbutton', { name: /BET AMOUNT/ }).fill('1.00');
+  await page.getByRole('button', { name: 'PLACE BET' }).click();
   await expect(page.locator('.confirmed-prediction')).toContainText('KIRA');
   await page.reload();
-  await expect(page.locator('.balance-button')).toContainText('10,000');
+  await expect(page.locator('.balance-button')).toContainText('84.50 SOL');
   await page.getByRole('button', { name: 'Settings', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);

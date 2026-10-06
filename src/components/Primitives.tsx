@@ -12,4 +12,4 @@ export const Sparkline = memo(function Sparkline({ values, color, width = 88, he
   const points = values.map((v, i) => `${i / Math.max(1, values.length - 1) * width},${height - 3 - (v - min) / range * (height - 6)}`).join(' ');
   return <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} className="sparkline" role="img" aria-label={`Price trend ${values.at(-1)! >= values[0] ? 'up' : 'down'}`}><motion.polyline animate={{ points }} transition={{ duration: 0.8, ease: 'linear' }} fill="none" stroke={color} strokeWidth="1.6" strokeLinejoin="round"/></svg>;
 });
-export function Coin({ small = false }: { small?: boolean }) { return <span aria-hidden="true" className={`coin ${small ? 'small' : ''}`}>$</span>; }
+export function Coin({ small = false }: { small?: boolean }) { return <span aria-hidden="true" className={`coin ${small ? 'small' : ''}`}>◎</span>; }

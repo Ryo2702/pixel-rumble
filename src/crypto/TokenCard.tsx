@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { SOLANA_NETWORK, type MarketToken } from '../services/stonkfun/types';
+import { SOLANA_NETWORK, type MarketToken } from '../data/readonly/stonkfun/types';
 
 export function formatUsd(value: number | undefined) {
   if (value === undefined || !Number.isFinite(value)) return 'N/A';
@@ -13,8 +13,9 @@ export function formatCompactUsd(value: number | undefined) {
 
 export function formatAge(createdAt: string) {
   const age = Math.max(0, Date.now() - Date.parse(createdAt));
+  if (age < 30000) return 'NEW';
+  if (age < 60000) return `${Math.floor(age / 1000)}s`;
   const minutes = Math.floor(age / 60000);
-  if (minutes < 1) return 'NEW';
   if (minutes < 60) return `${minutes}m`;
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h`;
@@ -34,9 +35,10 @@ export function TokenLogo({ token, size = 38 }: { token: MarketToken; size?: num
 }
 
 export function TokenCard({ token, onSelect }: { token: MarketToken; onSelect: (token: MarketToken) => void }) {
+  const onChainLabel = token.onChain?.status === 'verified' ? 'VERIFIED' : token.onChain?.status === 'unavailable' ? 'ON-CHAIN N/A' : 'UNVERIFIED';
   return <motion.article className="crypto-market-card token-card" layout whileHover={{ y: -2 }}>
     <button className="token-card-button" onClick={() => onSelect(token)} aria-label={`Inspect ${token.name} ${token.symbol}`}>
-      <div className="crypto-card-title"><TokenLogo token={token}/><div><h3>{token.name}</h3><span>{token.symbol}</span></div><span className="small-tag">STONKFUN</span></div>
+      <div className="crypto-card-title"><TokenLogo token={token}/><div><h3>{token.name}</h3><span>{token.symbol}</span></div><span className="small-tag">{onChainLabel}</span></div>
       <strong>{formatUsd(token.market.priceUsd)}</strong>
       {token.changePercent === undefined ? <span className="token-muted">CHANGE N/A <small>until next refresh</small></span> : <span className={token.changePercent >= 0 ? 'positive' : 'negative'}>{token.changePercent >= 0 ? '↑' : '↓'} {Math.abs(token.changePercent).toFixed(2)}% <small>since last update</small></span>}
       <div className="token-stats">{token.market.marketCapUsd !== undefined && <span>MARKET CAP <b>{formatCompactUsd(token.market.marketCapUsd)}</b></span>}{token.market.liquidityUsd !== undefined && <span>LIQUIDITY <b>{formatCompactUsd(token.market.liquidityUsd)}</b></span>}{token.market.volume24hUsd !== undefined && <span>24H VOLUME <b>{formatCompactUsd(token.market.volume24hUsd)}</b></span>}</div>

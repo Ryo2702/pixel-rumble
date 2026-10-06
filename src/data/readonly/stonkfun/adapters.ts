@@ -1,5 +1,7 @@
 import { STONKFUN_API } from './client';
 import { StonkFunValidationError } from './errors';
+import { isSolanaAddress } from '../solana/validation';
+import { TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '../solana/types';
 import { SOLANA_NETWORK } from './types';
 import type { LaunchablePair, NormalizedPairs, NormalizedTokens, StonkFunMarketFields, StonkFunQuote, StonkFunToken } from './types';
 
@@ -25,7 +27,13 @@ function optionalText(value: unknown, maxLength = 160): string | undefined {
 
 function identifier(value: unknown, field: string): string {
   const result = text(value, field, 128);
-  if (!/^[1-9A-HJ-NP-Za-km-z]{32,64}$/.test(result)) throw new StonkFunValidationError(`${field} is not a valid token identifier.`);
+  if (!isSolanaAddress(result)) throw new StonkFunValidationError(`${field} is not a valid Solana address.`);
+  return result;
+}
+
+function tokenProgram(value: unknown, field: string): string {
+  const result = identifier(value, field);
+  if (result !== TOKEN_PROGRAM_ID && result !== TOKEN_2022_PROGRAM_ID) throw new StonkFunValidationError(`${field} is not an SPL token program.`);
   return result;
 }
 
@@ -42,6 +50,12 @@ function numberValue(value: unknown): number | undefined {
 function requiredNumber(value: unknown, field: string): number {
   const result = numberValue(value);
   if (result === undefined) throw new StonkFunValidationError(`${field} must be a finite non-negative number.`);
+  return result;
+}
+
+function decimals(value: unknown, field: string): number {
+  const result = requiredNumber(value, field);
+  if (!Number.isInteger(result) || result > 255) throw new StonkFunValidationError(`${field} must be an integer from 0 to 255.`);
   return result;
 }
 
@@ -152,11 +166,11 @@ function pair(value: unknown): LaunchablePair | null {
       mint: identifier(source.mint, 'pair.mint'),
       symbol: symbol(source.symbol, 'pair.symbol'),
       name: text(source.name, 'pair.name'),
-      decimals: requiredNumber(source.decimals, 'pair.decimals'),
+      decimals: decimals(source.decimals, 'pair.decimals'),
       logoUrl: url(source.logoUrl),
       category: text(source.category, 'pair.category', 64),
       categoryLabel: text(source.categoryLabel, 'pair.categoryLabel', 64),
-      tokenProgram: identifier(source.tokenProgram, 'pair.tokenProgram'),
+      tokenProgram: tokenProgram(source.tokenProgram, 'pair.tokenProgram'),
       launchable: booleanValue(source.launchable, 'pair.launchable'),
       symbolAmbiguous: booleanValue(source.symbolAmbiguous, 'pair.symbolAmbiguous'),
       launchLabReady: booleanValue(source.launchLabReady, 'pair.launchLabReady'),

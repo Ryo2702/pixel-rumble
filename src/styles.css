@@ -75,7 +75,7 @@
   .balance-button strong { font-size: 16px; font-weight: 600; letter-spacing: .3px; }
   .balance-button .currency { color: #929aa5; font-size: 11px; }
   .balance-button > svg { margin-left: 6px; color: var(--muted); }
-  .mobile-wallet { display: none; }
+  .mobile-activity { display: none; }
   .market-ticker { display: flex; align-items: stretch; overflow: hidden; border-bottom: 1px solid #23262e; height: 37px; background: #101318; padding: 0 30px; gap: 24px; }
   .ticker-label { display: flex; align-items: center; gap: 6px; font: 8px var(--mono); font-weight: 700; letter-spacing: .6px; flex-shrink: 0; padding: 0; color: #a1a6b1; }
   .ticker-label svg { color: var(--lime); }
@@ -256,12 +256,17 @@
   .wager-input input { font: 18px var(--mono); background: none; border: 0; min-width: 0; width: 100%; color: #e9eaf0; outline: none; appearance: textfield; }
   .wager-input input::-webkit-inner-spin-button { appearance: none; }
   .wager-input .coin { opacity: .75; }
-  .quick-amounts { display: flex; gap: 5px; margin-top: 8px; }
-  .quick-amounts button { background: #20232b; color: #a5abba; font: 9px var(--mono); height: 27px; flex: 1; border-radius: 3px; border: 1px solid #30343e; }
+  .quick-amounts { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+  .quick-amounts button { background: #20232b; color: #a5abba; font: 9px var(--mono); height: 27px; min-width: 37px; flex: 1; border-radius: 3px; border: 1px solid #30343e; }
   .quick-amounts button.selected { background: #d6f65c0d; border-color: #73843b; color: #d6e5ad; }
   .quick-amounts button:disabled { opacity: .45; }
+  .bet-random-actions { display: flex; gap: 5px; margin-top: 8px; }
+  .bet-random-actions button { flex: 1; height: 28px; border: 1px solid #4b5360; border-radius: 3px; background: #171b24; color: #c7d39f; font: 8px var(--mono); letter-spacing: .35px; }
+  .bet-random-actions button:disabled { opacity: .45; }
+  .wager-limits { margin-top: 7px; color: #737b87; font: 7px var(--mono); letter-spacing: .45px; text-align: right; }
   .potential-return { margin: 19px 0 18px; display: flex; align-items: center; justify-content: space-between; gap: 5px; }
-  .potential-return > span { display: flex; align-items: center; gap: 5px; font-size: 10px; color: #9299a7; }
+  .potential-return > span { display: flex; align-items: center; flex-wrap: wrap; gap: 5px; font-size: 10px; color: #9299a7; }
+  .potential-return > span small { flex-basis: 100%; color: #7f8990; font-size: 8px; }
   .potential-return > strong { color: var(--lime); font: 13px var(--mono); font-weight: 700; }
   .form-error { color: #f08d9a; font-size: 11px; margin-bottom: 12px; }
   .confirmed-prediction { min-height: 181px; display: flex; align-items: center; justify-content: center; flex-direction: column; background: #d6f65c05; border: 1px dashed #d6f65c39; border-radius: 4px; padding: 17px 9px; text-align: center; gap: 8px; }
@@ -336,12 +341,12 @@
   .full-market-row > span:first-child strong { display: block; font-family: 'Space Grotesk', sans-serif; font-size: 12px; }
   .full-market-row > span:first-child small { display: block; font: 8px 'Space Grotesk', sans-serif; margin-top: 6px; color: #8b95a5; }
   .full-market-row small { color: #8490a0; font-size: 8px; font-weight: 400; }
-  .wallet-summary { display: flex; justify-content: space-between; align-items: center; padding: 22px; border-radius: 5px; background: #d6f65c09; border: 1px solid #d6f65c27; }
-  .wallet-summary > div { display: flex; gap: 16px; align-items: center; }
-  .wallet-summary .coin { height: 43px; width: 43px; font-size: 25px; }
-  .wallet-summary .eyebrow { color: #a6b389; font-size: 8px; margin-bottom: 6px; }
-  .wallet-summary strong { font: 24px var(--mono); color: var(--lime); }
-  .wallet-summary > span { font-size: 10px; color: #a5af97; line-height: 1.7; text-align: right; }
+  .balance-summary { display: flex; justify-content: space-between; align-items: center; padding: 22px; border-radius: 5px; background: #d6f65c09; border: 1px solid #d6f65c27; }
+  .balance-summary > div { display: flex; gap: 16px; align-items: center; }
+  .balance-summary .coin { height: 43px; width: 43px; font-size: 25px; }
+  .balance-summary .eyebrow { color: #a6b389; font-size: 8px; margin-bottom: 6px; }
+  .balance-summary strong { font: 24px var(--mono); color: var(--lime); }
+  .balance-summary > span { font-size: 10px; color: #a5af97; line-height: 1.7; text-align: right; }
   .history-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 24px 0; }
   .history-stats > div { padding-left: 14px; border-left: 1px solid var(--line); }
   .history-stats > div:first-child { border: 0; padding: 0; }
@@ -648,11 +653,11 @@
     .profile-record span { font-size: 8px; }
     .profile-record strong { font-size: 16px; }
     .profile-lower { grid-template-columns: 1fr; gap: 24px; }
-    .wallet-summary { padding: 17px; }
-    .wallet-summary > div { gap: 10px; }
-    .wallet-summary strong { font-size: 19px; }
-    .wallet-summary .coin { width: 33px; height: 33px; font-size: 19px; }
-    .wallet-summary > span { font-size: 8px; }
+    .balance-summary { padding: 17px; }
+    .balance-summary > div { gap: 10px; }
+    .balance-summary strong { font-size: 19px; }
+    .balance-summary .coin { width: 33px; height: 33px; font-size: 19px; }
+    .balance-summary > span { font-size: 8px; }
     .history-stats strong { font-size: 15px; }
     .history-stats span { font-size: 6px; }
     .history-row { gap: 8px; }

@@ -1,6 +1,6 @@
 # Pixel Rumble
 
-A playable single-screen pixel-art auto-battler. Eight autonomous fighters, five arenas, nine round rules, in-game spectator predictions, and read-only real Solana token data from the StonkFun public API. No real money, payments, wallets, blockchain transactions, deposits, or withdrawals.
+A playable single-screen pixel-art auto-battler. Eight autonomous fighters, five arenas, nine round rules, in-game spectator predictions using simulated SOL, and read-only real Solana Mainnet token data from the StonkFun public API. Simulated SOL remains separate from real SOL and SPL tokens; Pixel Rumble never sends transactions.
 
 ## Run
 
@@ -17,9 +17,9 @@ Vite prints the local URL. `npm run preview` serves the production build. Browse
 
 Each round is 22 seconds of open predictions, a 3-second lock/countdown, up to 58 seconds of combat, an 8-second result reveal, and 4 seconds of reconstruction. Speed controls affect the game engine and phase timers. Closing or hiding the tab pauses the local game; reload starts a new open round and refunds any unsettled prediction exactly once.
 
-Most round eliminations wins; total damage, then health, breaks a tie. Standard rounds resurrect defeated fighters after 5 seconds, with brief spawn protection. No-respawn rounds favor the remaining survivor. Every completed round earns 150 in-game spectator credits.
+Most round eliminations wins; total damage, then health, breaks a tie. Standard rounds resurrect defeated fighters after 5 seconds, with brief spawn protection. No-respawn rounds favor the remaining survivor. Every completed round earns 0.15 simulated SOL.
 
-Prediction stakes are deducted immediately. A winning prediction returns `stake × quoted decimal odds`, including the stake. A losing prediction returns zero. One prediction per round, from RC 50 to RC 5,000. The UI displays the full return before commitment. Odds are frozen when accepted and remain separate from combat RNG.
+Prediction stakes are deducted immediately. A winning prediction returns `stake × quoted decimal odds`, including the stake. A losing prediction returns zero. One prediction per round, from 0.10 to 20.00 simulated SOL. The UI displays the full return before commitment. Odds are frozen when accepted and remain separate from combat RNG.
 
 Boss invasions give fighters one life to cooperate against the Overlord. The boss wins if still alive at the deadline or if all fighters die; fighters win by defeating it. Individual predictions can choose top damage, longest survival, or the top fighter (boss damage rank). Survival ties break on health. No user controls fighter movement.
 
@@ -34,14 +34,14 @@ Special rounds cycle through Standard Rumble, Double Rewards, Underdog Bonus, To
 - `src/game/renderer.ts`: lazy-loaded PixiJS renderer, texture atlas, depth sorting, pooled particles/damage labels/projectiles, hazards, rain, adaptive effect density, GSAP reconstruction and announcements. Rendering and combat pause in hidden tabs; resources and event handlers are cleaned up on unmount.
 - `src/game/sprites.ts`: original native pixel character designs, shared between sprite atlas and profile avatars.
 - `src/game/audio.ts`: lazy Web Audio synthesis with independent music/effects/master controls. Muted by default; never starts before a user gesture.
-- `src/economy/`: quoted odds, validation, idempotent settlement, and a replaceable `PersistenceAdapter`. Local storage holds credits, activity, predictions, achievements, discoveries, and settings. StonkFun integration lives under `src/services/stonkfun/`, validates public token and pair responses, caches the last valid market state, and refreshes independently every 30 seconds.
+- `src/economy/`: fixed-precision simulated SOL amounts, quoted odds, validation, idempotent settlement, and a replaceable `PersistenceAdapter`. Local storage holds the simulated SOL balance, activity, predictions, achievements, discoveries, and settings. Read-only StonkFun and Solana adapters are exposed under `src/data/readonly/`; they only fetch public discovery and Mainnet RPC data through `VITE_SOLANA_RPC_URL`. Both market services cache the last valid state and refresh independently every 30 seconds.
 - `src/components/`: React spectator UI, native accessible dialogs, Motion interactions. `src/styles.css` uses CSS layers and responsive layouts; mobile switches between prediction and fighter panels below the arena.
 
-The game state is intentionally local and spectator-only. A future backend must own the game state and credit accounting if multiple spectators need to share one authoritative arena; browser storage is not a secure ledger. Browsing StonkFun data never connects a wallet, launches a token, signs a transaction, or stores private keys.
+The game state is intentionally local and spectator-only. A future backend must own the game state and simulated SOL accounting if multiple spectators need to share one authoritative arena; browser storage is not a secure ledger. Solana and StonkFun reads work without a wallet, keys, signatures, or transaction authorization. Pixel Rumble never writes to Solana or StonkFun. Set `VITE_SOLANA_RPC_URL` to a dedicated Mainnet provider in production rather than relying on the shared development endpoint.
 
 ## Verification
 
-`npm test` checks complete rounds, non-finite/invalid wagers, credit conservation, exactly-once settlement and interrupted-round refunds, odds locks, all nine events, boss predictions, arena rotation, reconstruction, and corrupted storage recovery. `tests/browser.spec.ts` covers desktop and mobile selection, predictions, profiles, settings, market, full-round settlement, reload behavior, browser errors, and horizontal overflow.
+`npm test` checks complete rounds, non-finite/invalid wagers, simulated SOL conservation, exactly-once settlement and interrupted-round refunds, odds locks, all nine events, boss predictions, arena rotation, reconstruction, and corrupted storage recovery. `tests/browser.spec.ts` covers desktop and mobile selection, predictions, profiles, settings, market, full-round settlement, reload behavior, browser errors, and horizontal overflow.
 
 ## Artwork
 
@@ -61,4 +61,4 @@ The static How It Works page explains gameplay and every in-game aspect of the e
 
 The renderer loads the 454 KB WebP backdrop on demand without blocking combat initialization; the original 2.7 MB PNG remains the artwork source. Other arenas and sprite sheets are generated locally only when needed. Audio is synthesized after user interaction, so there are no music or sound downloads to preload. Dialogs load on first use. Fonts are self-hosted Latin subsets with `font-display: swap`; arena dimensions remain reserved by the existing CSS. `vercel.json` caches hashed build assets immutably and allows public images/icons to revalidate daily. No service worker is added.
 
-`npm test` validates production SEO output, entity references, sitemap, preview indexing behavior, and image sizes alongside the game-state checks. `npx playwright test` also checks JavaScript-disabled navigation/credits, mobile overflow, deferred dialogs, and playable startup with a delayed backdrop. Core Web Vitals still require field measurement on the deployed site; local checks are not a field performance score.
+`npm test` validates production SEO output, entity references, sitemap, preview indexing behavior, and image sizes alongside the game-state checks. `npx playwright test` also checks JavaScript-disabled navigation, mobile overflow, deferred dialogs, and playable startup with a delayed backdrop. Core Web Vitals still require field measurement on the deployed site; local checks are not a field performance score.

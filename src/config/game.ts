@@ -1,10 +1,11 @@
 import type { ArenaConfig, FighterConfig, RoundEvent, Settings } from '../types';
+import { BET_LIMITS, GAME_CURRENCY, solToLamports } from '../economy/currency';
 
 export const CONFIG = {
   width: 960, height: 620,
   bounds: { left: 105, right: 855, top: 285, bottom: 530 },
   phases: { betting: 22, locked: 3, rumble: 58, results: 8, resurrection: 4 },
-  economy: { startingBalance: 10000, minWager: 50, maxWager: 5000, spectatorReward: 150, houseFactor: 0.94 },
+  economy: { startingBalance: solToLamports(GAME_CURRENCY.startingBalance), minWager: BET_LIMITS.min, maxWager: BET_LIMITS.max, spectatorReward: solToLamports(GAME_CURRENCY.spectatorReward), houseFactor: 0.94 },
   combat: { respawn: 5, invulnerability: 1.2, damageScale: 0.7, randomness: 0.42, bossHealth: 2200, bossDamage: 29, specialCooldown: 9, hazardInterval: 8, difficulty: 1 },
   effects: { particlePool: 250, textPool: 32, projectilePool: 40, shakeDuration: 0.2, transition: 0.45 },
   odds: { min: 1.2, max: 18 },
