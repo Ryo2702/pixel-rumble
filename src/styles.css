@@ -625,6 +625,9 @@
     .manifesto-line { margin: 0; }
     footer { flex-wrap: wrap; gap: 17px; padding: 20px 16px; }
     footer p { order: 3; font-size: 8px; width: 100%; }
+    .site-footer .footer-credit p { font-size: 11px; }
+    .site-footer nav { font-size: 12px; }
+    .game-about { padding-left: 16px; padding-right: 16px; }
     .system-status { font-size: 6px; }
     .system-status > span:last-child { display: none; }
     .dialog-inner { padding: 20px; }

@@ -1,4 +1,5 @@
 import { test, expect } from '@playwright/test';
+import { MARKET_ASSETS } from '../src/config/audience';
 
 test('arena starts while its backdrop is still downloading and panels load on demand', async ({ page }) => {
   let release!: () => void;
@@ -65,7 +66,7 @@ test('desktop predictions, profiles, settings, market, and a live round', async 
   await page.getByRole('switch', { name: 'Screen shake' }).uncheck();
   await page.getByRole('button', { name: 'Close dialog' }).click();
   await page.getByRole('button', { name: 'View market', exact: true }).click();
-  await expect(page.locator('.full-market-row')).toHaveCount(8);
+  await expect(page.getByRole('dialog').getByRole('article')).toHaveCount(MARKET_ASSETS.length);
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'My activity', exact: true }).click();
   await expect(page.locator('.history-row')).toContainText('NOVA');

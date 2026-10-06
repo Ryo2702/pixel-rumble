@@ -39,6 +39,7 @@ test('production HTML exposes credits and linked structured data before JavaScri
     assert.equal((html.match(/<h1[ >]/g) || []).length, 1);
   }
   assert.match(asset('about.html'), /No deposits, withdrawals, real-money wagering, or cash prizes/);
+  assert.doesNotMatch(asset('index.html'), /<link[^>]+rel="modulepreload"[^>]+(?:pixi|renderer|Dialogs)/);
   assert.doesNotMatch(asset('about.html'), /<script[^>]+(?:src=|type="module")/);
   assert.match(asset('robots.txt'), /Sitemap: https:\/\/pixel-rumble.test\/sitemap.xml/);
   assert.match(asset('sitemap.xml'), /<loc>https:\/\/pixel-rumble.test\/about.html<\/loc>/);

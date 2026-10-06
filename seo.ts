@@ -40,6 +40,7 @@ export function siteSeo(configuredUrl?: string, indexable = false): Plugin {
       const isAbout = context.filename.endsWith('/about.html');
       const canonical = absolute(isAbout ? 'about.html' : '');
       const pageTitle = isAbout ? 'About & Credits | Pixel Rumble' : title;
+      const pageDescription = isAbout ? `Learn how Pixel Rumble works, explore its fictional game economy, and meet its developer and SEO specialist, ${developer.name}.` : description;
       const person = { '@type': 'Person', '@id': `${developer.portfolio}#person`, name: developer.name, url: developer.portfolio, jobTitle: [...developer.roles, ...developer.additionalRoles] };
       const creator = { '@id': person['@id'] };
       const schema = { '@context': 'https://schema.org', '@graph': [
@@ -49,7 +50,7 @@ export function siteSeo(configuredUrl?: string, indexable = false): Plugin {
         { '@type': isAbout ? 'AboutPage' : 'WebPage', '@id': `${canonical}#page`, url: canonical, name: pageTitle, isPartOf: { '@id': `${origin}#website` }, about: { '@id': `${origin}#game` }, author: creator, inLanguage: 'en' },
       ] };
       const head = `<title>${escape(pageTitle)}</title>
-        <meta name="description" content="${escape(description)}">
+        <meta name="description" content="${escape(pageDescription)}">
         <meta name="author" content="${escape(developer.name)}">
         <meta name="robots" content="${canIndex ? 'index, follow, max-image-preview:large' : 'noindex, nofollow'}">
         <link rel="canonical" href="${escape(canonical)}">
@@ -60,7 +61,7 @@ export function siteSeo(configuredUrl?: string, indexable = false): Plugin {
         <link rel="manifest" href="/site.webmanifest">
         <meta name="theme-color" content="#0d0f13">
         <meta property="og:title" content="${escape(pageTitle)}">
-        <meta property="og:description" content="${escape(description)}">
+        <meta property="og:description" content="${escape(pageDescription)}">
         <meta property="og:url" content="${escape(canonical)}">
         <meta property="og:type" content="website">
         <meta property="og:site_name" content="Pixel Rumble">
@@ -72,7 +73,7 @@ export function siteSeo(configuredUrl?: string, indexable = false): Plugin {
         <meta property="og:image:alt" content="Pixel Rumble — 2D Auto-Battle Arena, with eight pixel fighters in the neon arena.">
         <meta name="twitter:card" content="summary_large_image">
         <meta name="twitter:title" content="${escape(pageTitle)}">
-        <meta name="twitter:description" content="${escape(description)}">
+        <meta name="twitter:description" content="${escape(pageDescription)}">
         <meta name="twitter:image" content="${escape(absolute('images/pixel-rumble-social.png'))}">
         <meta name="twitter:image:alt" content="Pixel Rumble — 2D Auto-Battle Arena, with eight pixel fighters in the neon arena.">
         <script type="application/ld+json">${JSON.stringify(schema).replace(/</g, '\\u003c')}</script>`;
