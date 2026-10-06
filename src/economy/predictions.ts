@@ -7,7 +7,7 @@ export function calculateOdds(fighters: Fighter[], arena: ArenaConfig): void {
     const weapon = WEAPONS[f.weapon];
     return (f.attack * 1.5 * weapon.damage + f.defense * 0.8 + f.speed * 0.45 + f.maxHealth * 0.2)
       * (0.75 + f.wins / (f.wins + f.losses)) * (0.9 + form * 0.045)
-      * (1 + f.streak * 0.025) * (0.8 + (f.health / f.maxHealth) * 0.2)
+      * (1 + f.streak * 0.025) * Math.max(0.7, 1 - f.recentDeaths * 0.025) * (0.8 + (f.health / f.maxHealth) * 0.2)
       * (f.class === arena.favored ? 1.12 : 1) * (1 + f.critical + weapon.critical);
   });
   const total = weights.reduce((a, b) => a + b, 0);

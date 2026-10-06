@@ -11,7 +11,7 @@ export interface Fighter extends FighterConfig {
   health: number; x: number; y: number; facing: number; moving: boolean; cooldown: number; specialCooldown: number;
   respawn: number; attackFlash: number; hurtFlash: number; invulnerable: number; streak: number; longestStreak: number;
   roundKills: number; roundDamage: number; aliveTime: number; odds: number; change: number; priceHistory: number[];
-  recent: boolean[]; roundStartPrice: number; totalVolume: number; popularity: number; targetId: string | null;
+  recent: boolean[]; recentDeaths: number; roundStartPrice: number; totalVolume: number; popularity: number; targetId: string | null;
 }
 export interface ArenaConfig {
   id: string; name: string; subtitle: string; color: string; hazard: string; hazardDamage: number; hazardRadius: number; gravity: number; favored: FighterClass; music: number;

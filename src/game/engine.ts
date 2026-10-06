@@ -33,7 +33,7 @@ export class GameEngine {
     this.round = Math.max(this.save.roundsWatched + 1, ...this.save.predictions.map(p => p.round + 1));
     this.arenaIndex = Math.floor((this.round - 1) / 2) % ARENAS.length;
     this.event = CONFIG.events[(this.round - 1) % CONFIG.events.length];
-    this.fighters = FIGHTERS.map((f, i) => ({ ...f, health: f.maxHealth, x: 175 + (i % 4) * 200, y: 335 + Math.floor(i / 4) * 130, facing: i % 2 ? -1 : 1, moving: false, cooldown: i * 0.2, specialCooldown: 3 + i, respawn: 0, attackFlash: 0, hurtFlash: 0, invulnerable: 0, streak: 0, longestStreak: 3 + i % 4, roundKills: 0, roundDamage: 0, aliveTime: 0, odds: 1, change: 0, priceHistory: Array.from({ length: 24 }, (_, j) => f.price * (0.9 + j * 0.004 + Math.sin(j * 1.5 + i) * 0.03)), recent: Array.from({ length: 7 }, (_, n) => (n + i) % 3 !== 0), roundStartPrice: f.price, totalVolume: 12500 + i * 3120, popularity: 10 + (8 - i) * 2, targetId: null }));
+    this.fighters = FIGHTERS.map((f, i) => ({ ...f, health: f.maxHealth, x: 175 + (i % 4) * 200, y: 335 + Math.floor(i / 4) * 130, facing: i % 2 ? -1 : 1, moving: false, cooldown: i * 0.2, specialCooldown: 3 + i, respawn: 0, attackFlash: 0, hurtFlash: 0, invulnerable: 0, streak: 0, longestStreak: 3 + i % 4, roundKills: 0, roundDamage: 0, aliveTime: 0, odds: 1, change: 0, priceHistory: Array.from({ length: 24 }, (_, j) => f.price * (0.9 + j * 0.004 + Math.sin(j * 1.5 + i) * 0.03)), recent: Array.from({ length: 7 }, (_, n) => (n + i) % 3 !== 0), recentDeaths: 0, roundStartPrice: f.price, totalVolume: 12500 + i * 3120, popularity: 10 + (8 - i) * 2, targetId: null }));
     calculateOdds(this.fighters, this.arena);
     this.addFeed('The gates are open', 'Choose your fighter. Make your call.', '#d8fa42', 'round');
     this.addFeed('Welcome to the underground', '8 fighters. One arena. Endless possibilities.', '#ac83ff', 'system');
@@ -130,7 +130,7 @@ export class GameEngine {
     this.winner = null; this.boss = null; this.hazard = null; this.hazardClock = 0;
     this.fighters.forEach((f, i) => {
       f.health = f.maxHealth; f.roundKills = 0; f.roundDamage = 0; f.aliveTime = 0; f.respawn = 0;
-      f.x = 175 + (i % 4) * 200; f.y = 335 + Math.floor(i / 4) * 130; f.streak = 0;
+      f.x = 175 + (i % 4) * 200; f.y = 335 + Math.floor(i / 4) * 130; f.recentDeaths *= 0.6;
       f.roundStartPrice = f.price; f.specialCooldown = 3 + i; f.cooldown = this.random(); f.targetId = null;
       if (this.event === 'TOKEN CRASH') this.moveMarket(f, -0.12 - this.random() * 0.1);
       if (this.event === 'TOKEN SURGE') this.moveMarket(f, 0.12 + this.random() * 0.1);
@@ -234,7 +234,7 @@ export class GameEngine {
     if (killer) target.x = Math.max(CONFIG.bounds.left, Math.min(CONFIG.bounds.right, target.x + killer.facing * 8));
     else this.emit({ kind: 'hit', x: target.x, y: target.y, color: '#ff7878', amount: Math.round(amount) });
     if (target.health > 0) return;
-    target.deaths++; target.streak = 0; target.respawn = CONFIG.combat.respawn;
+    target.deaths++; target.recentDeaths++; target.streak = 0; target.respawn = CONFIG.combat.respawn;
     this.moveMarket(target, CONFIG.market.death);
     if (killer) {
       killer.kills++; killer.roundKills++; killer.streak++; killer.longestStreak = Math.max(killer.streak, killer.longestStreak);
