@@ -6,6 +6,7 @@ import { quotedOdds } from '../economy/predictions';
 import { Avatar, Coin } from './Primitives';
 import { BET_CONFIG, BET_LIMITS, formatSOL, formatSOLInput, generateRandomBet, parseSOL, payoutFor, profitFor, signedSOL, solToLamports } from '../economy/currency';
 import { LiveBets } from './AudiencePanels';
+import { LivePredictionPanel } from './LivePredictionPanel';
 import type { GameEngine } from '../game/engine';
 import type { Fighter, Prediction, Snapshot } from '../types';
 
@@ -51,6 +52,7 @@ export function PredictionPanel({ state, fighter, engine, select, inspect }: { s
   }
   const potentialReturn = parsedAmount === null ? 0 : payoutFor(parsedAmount, odds);
   return <aside className="prediction-column">
+    <LivePredictionPanel state={state} engine={engine}/>
     <section className="panel prediction-panel"><div className="panel-heading"><h2><Target size={15}/>MAKE YOUR CALL</h2><Info size={14} className="muted"/></div>
       <motion.div key={betting ? 'open' : 'locked'} initial={{ opacity: 0.5, scale: 0.97 }} animate={{ opacity: 1, scale: 1 }} className={`betting-status ${betting ? 'is-open' : ''}`}><span><span className="live-dot"/>{betting ? 'PREDICTIONS OPEN' : state.phase === 'results' ? 'ROUND COMPLETE' : 'BETTING LOCKED'}</span><span>{betting ? <><Clock3 size={12}/><motion.b key={state.remaining} initial={{ opacity: 0.4 }} animate={{ opacity: 1 }}>{state.remaining}s</motion.b></> : <LockKeyhole size={12}/>}</span></motion.div>
       <div className="selected-fighter"><Avatar fighter={fighter} size={55}/><div><span className="eyebrow">YOUR CONTENDER</span><button className="selected-name" onClick={inspect}>{fighter.name}<ChevronDown size={15}/></button><small style={{ color: fighter.color }}>{fighter.class} <span>· {fighter.weapon}</span></small></div></div>

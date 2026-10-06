@@ -1,32 +1,36 @@
-import { Activity, ArrowUpRight, RefreshCw, ShieldCheck } from 'lucide-react';
+import { Activity, ArrowUpRight, CheckCircle2, RefreshCw, Search, ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
-import type { StonkFunMarketState } from '../data/readonly/stonkfun/store';
-import type { MarketToken } from '../data/readonly/stonkfun/types';
-import { LaunchablePairs } from './LaunchablePairs';
-import { TokenCard } from './TokenCard';
-import { TokenDetails } from './TokenDetails';
-import { TokenFeed } from './TokenFeed';
-import { TokenTicker } from './TokenTicker';
+import { SOLANA_MAINNET_LABEL, type SolanaReadState } from '../services/solana/readonly/types';
 
-function updatedAt(value: number | null) {
-  return value ? new Date(value).toLocaleTimeString('en-US', { hour12: false }) : '—';
+const integer = (value: number) => value.toLocaleString('en-US');
+const sol = (lamports: number) => `${(lamports / 1_000_000_000).toLocaleString('en-US', { maximumFractionDigits: 2 })} SOL`;
+const updatedAt = (value: number | null) => value ? new Date(value).toLocaleTimeString('en-US', { hour12: false }) : '—';
+
+function statusLabel(market: SolanaReadState) {
+  return market.network ? 'CONNECTED' : market.refreshing ? 'CONNECTING' : 'OFFLINE';
 }
 
-function EmptyMarket({ market, compact = false }: { market: StonkFunMarketState; compact?: boolean }) {
-  if (market.status === 'loading') return <span className={compact ? 'market-inline-status' : 'token-empty'}>LOADING MARKET...</span>;
-  return <span className={compact ? 'market-inline-status' : 'market-error'}><strong>REAL SOLANA DATA TEMPORARILY UNAVAILABLE</strong><button onClick={() => void market.refresh()}>RETRY</button></span>;
+export function MarketTicker({ market, open }: { market: SolanaReadState; open: () => void }) {
+  const network = market.network;
+  return <section className="crypto-strip" aria-label="Real Solana read-only data"><div className="crypto-strip-label"><Activity size={15}/><strong>REAL SOLANA<br/>DATA</strong><span>READ ONLY</span></div><div className="crypto-strip-quotes"><div className="crypto-quote"><span><b>SLOT</b><small>{SOLANA_MAINNET_LABEL}</small></span><strong>{network ? integer(network.slot) : '—'}</strong><div><small>{statusLabel(market)}</small></div></div><div className="crypto-quote"><span><b>BLOCK HEIGHT</b></span><strong>{network ? integer(network.blockHeight) : '—'}</strong><div><small>CONFIRMED</small></div></div><div className="crypto-quote"><span><b>EPOCH</b></span><strong>{network ? integer(network.epoch) : '—'}</strong><div><small>RPC READ</small></div></div></div><div className="market-last-updated">LAST UPDATED<br/><b>{updatedAt(market.lastUpdated)}</b></div><button className="market-strip-open" onClick={open} aria-label="View market"><ArrowUpRight size={15}/></button></section>;
 }
 
-export function MarketTicker({ market, open }: { market: StonkFunMarketState; open: () => void }) {
-  const select = (_token: MarketToken) => open();
-  return <section className="crypto-strip" aria-label="Real Solana read-only market"><div className="crypto-strip-label"><Activity size={15}/><strong>REAL SOLANA<br/>DATA</strong><span>READ ONLY</span></div>{market.tokens.length ? <TokenTicker tokens={market.tokens} onSelect={select}/> : <EmptyMarket market={market} compact/>}<div className="market-last-updated">LAST UPDATED<br/><b>{updatedAt(market.lastUpdated)}</b></div><button className="market-strip-open" onClick={open} aria-label="View market"><ArrowUpRight size={15}/></button></section>;
+function LookupResult({ children }: { children: React.ReactNode }) {
+  return <div className="solana-lookup-result">{children}</div>;
 }
 
-export function MarketView({ market }: { market: StonkFunMarketState }) {
-  const [selected, setSelected] = useState<MarketToken | null>(null);
-  const visibleTokens = market.tokens.slice(0, 5);
-  const verifiedTokens = market.tokens.filter(token => token.onChain?.status === 'verified');
-  return <><div className="market-notice"><ShieldCheck size={22}/><div><strong>REAL SOLANA DATA · READ ONLY</strong><p>POWERED BY STONKFUN + SOLANA MAINNET. StonkFun discovers tokens; Solana Mainnet verifies public mint accounts. Game events and simulated SOL never alter on-chain data.</p></div><span className="market-updated">LAST UPDATED<br/><b>{updatedAt(market.lastUpdated)}</b></span></div>{market.status === 'error' && <div className="market-error"><strong>REAL SOLANA DATA TEMPORARILY UNAVAILABLE</strong><span>{market.error}</span><button onClick={() => void market.refresh()}><RefreshCw size={13}/>RETRY</button></div>}{market.tokens.length ? <><TokenFeed tokens={market.tokens} onSelect={setSelected}/><TokenFeed tokens={verifiedTokens} onSelect={setSelected} title="VERIFIED TOKENS" headingId="verified-tokens-title" headingMeta="SOLANA MAINNET · READ ONLY" emptyText="NO VERIFIED TOKENS YET."/><div className="crypto-market-cards">{visibleTokens.map(token => <TokenCard key={token.mint} token={token} onSelect={setSelected}/>)}</div>{selected && <TokenDetails token={selected} lastUpdated={market.lastUpdated} close={() => setSelected(null)}/>}</> : market.status !== 'error' && <EmptyMarket market={market}/>}<LaunchablePairs pairs={market.pairs} error={market.pairsError} retry={() => void market.refresh()}/><p className="dialog-description">Pixel Rumble uses simulated SOL for spectator predictions. The Rumble Exchange only displays read-only public Solana data.</p></>;
+export function MarketView({ market }: { market: SolanaReadState }) {
+  const [address, setAddress] = useState('');
+  const [mint, setMint] = useState('');
+  const network = market.network;
+  return <>
+    <div className="market-notice"><ShieldCheck size={22}/><div><strong>REAL SOLANA DATA · READ ONLY</strong><p>{SOLANA_MAINNET_LABEL}. Public JSON-RPC data only. No wallet, transaction, signing, or market-price provider.</p></div><span className="market-updated">LAST UPDATED<br/><b>{updatedAt(market.lastUpdated)}</b></span></div>
+    {market.error && <div className="market-error"><strong>{market.network ? 'REFRESH FAILED' : market.error}</strong><span>{market.network ? 'Previous valid data is still visible.' : 'Try the Mainnet RPC again.'}</span><button onClick={() => void market.refresh()} disabled={market.refreshing}><RefreshCw size={13}/>RETRY</button></div>}
+    <section className="solana-network-panel" aria-labelledby="solana-network-title"><div className="solana-section-heading"><h3 id="solana-network-title"><Activity size={14}/>{SOLANA_MAINNET_LABEL}</h3><div><span className={`solana-status ${network ? 'connected' : ''}`}><span className="live-dot"/>{statusLabel(market)}</span><button className="solana-refresh" onClick={() => void market.refresh()} disabled={market.refreshing}><RefreshCw size={13} className={market.refreshing ? 'spinning' : ''}/>{market.refreshing ? 'LOADING' : 'REFRESH'}</button></div></div>{network ? <><div className="solana-network-grid"><div><span>CURRENT SLOT</span><strong>{integer(network.slot)}</strong></div><div><span>BLOCK HEIGHT</span><strong>{integer(network.blockHeight)}</strong></div><div><span>EPOCH</span><strong>{integer(network.epoch)}</strong></div><div><span>TRANSACTIONS</span><strong>{integer(network.transactionCount)}</strong></div><div><span>RPC VERSION</span><strong>{network.version}</strong></div><div><span>COMMITMENT</span><strong>CONFIRMED</strong></div></div><div className="solana-supply"><div><span>TOTAL SOL SUPPLY</span><strong>{sol(network.totalLamports)}</strong></div><div><span>CIRCULATING SOL</span><strong>{sol(network.circulatingLamports)}</strong></div><div><span>NON-CIRCULATING SOL</span><strong>{sol(network.nonCirculatingLamports)}</strong></div></div></> : <p className="token-empty">{market.refreshing ? 'READING SOLANA MAINNET...' : 'SOLANA DATA TEMPORARILY UNAVAILABLE'}</p>}</section>
+    <div className="solana-lookup-grid">
+      <section className="solana-lookup" aria-labelledby="address-lookup-title"><div className="solana-section-heading"><h3 id="address-lookup-title"><Search size={14}/>PUBLIC ADDRESS LOOKUP</h3><span>READ ONLY</span></div><label htmlFor="solana-address">SOLANA ADDRESS</label><div className="solana-input-row"><input id="solana-address" value={address} onChange={event => setAddress(event.target.value)} placeholder="Solana public address" autoComplete="off"/><button onClick={() => void market.lookupAddress(address)} disabled={market.address.status === 'loading'}><Search size={13}/>{market.address.status === 'loading' ? 'READING' : 'READ ADDRESS'}</button></div>{market.address.error && <p className="form-error" role="alert">{market.address.error}</p>}{market.address.data && <LookupResult><div><span>ADDRESS</span><code>{market.address.data.address}</code></div><div><span>BALANCE</span><strong>{market.address.data.sol.toLocaleString('en-US', { maximumFractionDigits: 9 })} SOL</strong></div><div><span>OWNER</span><code>{market.address.data.owner ?? 'ACCOUNT NOT FOUND'}</code></div><div><span>EXECUTABLE</span><strong>{market.address.data.executable === null ? 'ACCOUNT NOT FOUND' : market.address.data.executable ? 'YES' : 'NO'}</strong></div><div><span>LAMPORTS</span><strong>{integer(market.address.data.lamports)}</strong></div><div><span>RPC SLOT</span><strong>{integer(market.address.data.slot)}</strong></div></LookupResult>}</section>
+      <section className="solana-lookup" aria-labelledby="token-lookup-title"><div className="solana-section-heading"><h3 id="token-lookup-title"><CheckCircle2 size={14}/>TOKEN MINT LOOKUP</h3><span>READ ONLY</span></div><label htmlFor="solana-mint">SPL TOKEN MINT</label><div className="solana-input-row"><input id="solana-mint" value={mint} onChange={event => setMint(event.target.value)} placeholder="SPL token mint address" autoComplete="off"/><button onClick={() => void market.lookupToken(mint)} disabled={market.token.status === 'loading'}><CheckCircle2 size={13}/>{market.token.status === 'loading' ? 'VERIFYING' : 'VERIFY ON-CHAIN'}</button></div>{market.token.error && <p className="form-error" role="alert">{market.token.error}</p>}{market.token.data && <LookupResult><div><span>TOKEN MINT</span><code>{market.token.data.mint}</code></div><div><span>SUPPLY</span><strong>{market.token.data.uiAmountString}</strong></div><div><span>RAW SUPPLY</span><strong>{market.token.data.amount}</strong></div><div><span>DECIMALS</span><strong>{market.token.data.decimals}</strong></div><div><span>OWNER</span><code>{market.token.data.owner ?? 'ACCOUNT NOT FOUND'}</code></div><div><span>STATUS</span><strong className={market.token.data.verified ? 'positive' : 'negative'}>{market.token.data.verified ? 'VERIFIED ON-CHAIN' : 'NOT VERIFIED'}</strong></div></LookupResult>}</section>
+    </div>
+    <p className="dialog-description">Pixel Rumble simulated SOL is game data. Solana Mainnet data above is real, public, and read-only. No wallet or blockchain write exists on this screen.</p>
+  </>;
 }
-
-export { TokenCard, TokenDetails, TokenFeed, LaunchablePairs, TokenTicker };

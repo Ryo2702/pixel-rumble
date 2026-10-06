@@ -1,3 +1,5 @@
+@keyframes spin { to { transform: rotate(360deg); } }
+
 @layer components {
   .main-nav { gap: 22px; margin-left: 18px; }
   .header-live { display: grid; grid-template-columns: 5px auto; align-items: center; gap: 4px 7px; color: #dce6cd; font: 13px var(--mono); }
@@ -102,6 +104,38 @@
   .market-error button { margin-left: auto; flex-shrink: 0; }
   .market-error.compact { margin: 0; }
   .market-updated { margin-left: auto; flex-shrink: 0; color: #7d8794; font: 7px var(--mono); line-height: 1.7; text-align: right; }
+  .solana-network-panel, .solana-lookup { border: 1px solid var(--line); border-radius: 5px; background: #10141b; margin-bottom: 16px; overflow: hidden; }
+  .solana-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 43px; padding: 0 13px; border-bottom: 1px solid #ffffff0a; }
+  .solana-section-heading h3 { display: flex; align-items: center; gap: 7px; font-size: 10px; letter-spacing: .8px; font-weight: 600; }
+  .solana-section-heading h3 svg { color: var(--lime); }
+  .solana-section-heading > span { color: #7f8998; font: 7px var(--mono); }
+  .solana-section-heading > div { display: flex; align-items: center; gap: 10px; }
+  .solana-status { display: inline-flex; align-items: center; gap: 5px; color: #f0a4ae; font: 7px var(--mono); }
+  .solana-status.connected { color: #badf86; }
+  .solana-status .live-dot { width: 5px; height: 5px; }
+  .solana-refresh { display: inline-flex; align-items: center; gap: 5px; color: var(--lime); border: 1px solid #d6f65c44; border-radius: 3px; padding: 6px 8px; font: 8px var(--mono); }
+  .solana-refresh:disabled { opacity: .55; }
+  .spinning { animation: spin .8s linear infinite; }
+  .solana-network-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 1px; background: #ffffff09; }
+  .solana-network-grid > div, .solana-supply > div { min-width: 0; padding: 14px 12px; background: #10141b; }
+  .solana-network-grid span, .solana-supply span, .solana-lookup-result span { display: block; color: #7f8998; font: 7px var(--mono); letter-spacing: .35px; }
+  .solana-network-grid strong { display: block; margin-top: 8px; color: #dce2e9; font: 12px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .solana-supply { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; margin-top: 1px; background: #ffffff09; }
+  .solana-supply strong { display: block; margin-top: 8px; color: var(--lime); font: 14px var(--mono); }
+  .solana-lookup-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .solana-lookup-grid .solana-lookup { margin-bottom: 0; }
+  .solana-lookup > label { display: block; padding: 14px 13px 6px; color: #aeb8c5; font: 8px var(--mono); }
+  .solana-input-row { display: flex; gap: 7px; padding: 0 13px 13px; }
+  .solana-input-row input { min-width: 0; width: 100%; height: 35px; padding: 0 9px; color: #e5e8ec; background: #0c1016; border: 1px solid #3a414d; border-radius: 3px; font-size: 10px; }
+  .solana-input-row input:focus { border-color: #9db74b; outline: 1px solid #d6f65c18; }
+  .solana-input-row button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; flex-shrink: 0; padding: 0 9px; color: #1d2610; background: var(--lime); border-radius: 3px; font: 8px var(--mono); font-weight: 700; }
+  .solana-input-row button:disabled { opacity: .55; }
+  .solana-lookup .form-error { margin: 0 13px 12px; font-size: 9px; }
+  .solana-lookup-result { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; padding: 13px; border-top: 1px solid #ffffff0a; background: #0d1117; }
+  .solana-lookup-result strong, .solana-lookup-result code { display: block; margin-top: 6px; color: #dce2e9; font: 10px var(--mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .solana-lookup-result code { color: #aab6c3; font-size: 8px; }
+  .solana-lookup-result .positive { color: var(--lime); }
+  .solana-lookup-result .negative { color: #f08794; }
   .new-token-feed, .launchable-pairs { border: 1px solid var(--line); border-radius: 5px; background: #10141b; margin-bottom: 16px; overflow: hidden; }
   .token-section-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 43px; padding: 0 13px; border-bottom: 1px solid #ffffff0a; }
   .token-section-heading h3 { display: flex; align-items: center; gap: 7px; font-size: 10px; letter-spacing: .8px; font-weight: 600; }
@@ -368,6 +402,13 @@
     .crowd-fighter-distribution b { font-size: 6px; }
     .crowd-roster .fighter-score { font-size: 11px; }
     .crypto-strip { flex-wrap: wrap; position: relative; gap: 13px; padding: 14px; }
+    .solana-network-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .solana-supply, .solana-lookup-grid { grid-template-columns: 1fr; }
+    .solana-lookup-grid { gap: 14px; }
+    .solana-input-row { flex-direction: column; }
+    .solana-input-row button { min-height: 34px; }
+    .solana-section-heading { align-items: flex-start; flex-direction: column; padding: 12px 13px; }
+    .solana-section-heading > div { width: 100%; justify-content: space-between; }
     .crypto-strip-label { display: flex; align-items: center; gap: 8px; width: 100%; }
     .crypto-strip-label > strong { font-size: 8px; }
     .crypto-strip-label > strong br { display: none; }

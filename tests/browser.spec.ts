@@ -68,7 +68,7 @@ test('desktop predictions, profiles, settings, market, and a live round', async 
   await page.getByRole('button', { name: 'View market', exact: true }).click();
   const marketDialog = page.getByRole('dialog');
   await expect(marketDialog).toContainText('REAL SOLANA DATA · READ ONLY');
-  await expect(marketDialog.getByText(/NEW TOKENS|REAL SOLANA DATA TEMPORARILY UNAVAILABLE/)).toBeVisible();
+  await expect(marketDialog.locator('.solana-network-panel').getByText(/CURRENT SLOT|SOLANA DATA TEMPORARILY UNAVAILABLE|READING SOLANA MAINNET/)).toBeVisible();
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'My activity', exact: true }).click();
   await expect(page.locator('.history-row')).toContainText('NOVA');

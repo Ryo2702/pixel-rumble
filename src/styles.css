@@ -220,6 +220,57 @@
   .boss-health > div { height: 6px; background: #240e20; border: 1px solid #a44960; }
   .boss-health i { display: block; height: 100%; background: #f05d83; }
   .prediction-panel { padding: 0 16px 16px; }
+  .live-prediction-panel { margin-bottom: 13px; border-color: #d6f65c28; background: #14191a; }
+  .live-prediction-panel .panel-heading { min-height: 43px; padding: 0 12px; }
+  .live-prediction-panel .panel-heading h2 { color: #d6dfbe; font-size: 9px; }
+  .live-prediction-body { padding: 12px; }
+  .live-market-status { display: flex; align-items: center; gap: 5px; font: 7px var(--mono); color: #9aa19b; }
+  .live-market-status.open { color: var(--lime); }
+  .live-market-status.locked { color: #f3b95b; }
+  .live-prediction-question { display: flex; flex-direction: column; gap: 6px; margin-bottom: 11px; }
+  .live-prediction-question strong { color: #f0f1e9; font-size: 12px; line-height: 1.45; }
+  .live-selection-list { display: flex; flex-direction: column; gap: 4px; }
+  .live-selection { display: flex; align-items: center; justify-content: space-between; width: 100%; min-height: 30px; padding: 0 8px; border: 1px solid #ffffff0d; border-radius: 3px; background: #ffffff04; color: #b7bdc6; font: 9px var(--mono); text-align: left; }
+  .live-selection:hover:not(:disabled), .live-selection.selected { border-color: #d6f65c55; background: #d6f65c0b; color: #eef5d9; }
+  .live-selection.outcome { border-color: #d6f65c77; background: #d6f65c14; }
+  .live-selection:disabled { cursor: default; }
+  .live-selection > span { display: flex; align-items: center; gap: 7px; }
+  .live-selection > span > i { display: block; width: 6px; height: 6px; border-radius: 50%; }
+  .live-selection > b { color: var(--lime); font-weight: 400; }
+  .live-countdown { position: relative; display: grid; grid-template-columns: 1fr auto; gap: 5px; align-items: center; margin: 11px 0 13px; padding-bottom: 6px; font: 7px var(--mono); color: #8d969e; }
+  .live-countdown > span { display: flex; align-items: center; gap: 5px; }
+  .live-countdown > b { color: #e6ebdf; font: 9px var(--mono); }
+  .live-countdown > i { position: absolute; bottom: 0; left: 0; right: 0; height: 2px; overflow: hidden; background: #ffffff0d; transform-origin: left; }
+  .live-countdown > i > span { display: block; width: 100%; height: 100%; background: var(--lime); transform-origin: left; }
+  .live-wager-input { height: 37px; }
+  .live-wager-input input { font-size: 15px; }
+  .live-quick-amounts { margin-top: 6px; }
+  .live-quick-amounts button { min-width: 29px; height: 24px; font-size: 8px; }
+  .live-prediction-panel .bet-random-actions { margin-top: 6px; }
+  .live-prediction-panel .bet-random-actions button { height: 25px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 7px; }
+  .live-potential-return { margin: 13px 0 12px; }
+  .live-potential-return > span { font-size: 9px; }
+  .live-potential-return > strong { font-size: 12px; }
+  .live-prediction-panel .primary-button { height: 37px; font-size: 9px; }
+  .live-user-result { display: flex; flex-direction: column; gap: 6px; padding: 12px 9px; border: 1px dashed #d6f65c39; border-radius: 4px; background: #d6f65c07; text-align: center; }
+  .live-user-result strong { color: var(--lime); font: 11px var(--pixel); }
+  .live-user-result span, .live-user-result b { color: #a8b39e; font: 8px var(--mono); font-weight: 400; }
+  .live-user-result.lost { border-color: #f0879444; background: #f0879406; }
+  .live-user-result.lost strong { color: #f08794; }
+  .live-user-result.push, .live-user-result.void, .live-user-result.expired { border-color: #f3b95b44; background: #f3b95b06; }
+  .live-user-result.push strong, .live-user-result.void strong, .live-user-result.expired strong { color: #f3b95b; }
+  .live-crowd-summary { margin-top: 13px; padding-top: 11px; border-top: 1px solid #ffffff0b; }
+  .live-crowd-summary > div:first-child { display: flex; justify-content: space-between; gap: 6px; margin-bottom: 9px; color: #7f8990; font: 7px var(--mono); }
+  .live-crowd-summary > div:first-child b { color: #9ca69b; font-weight: 400; text-align: right; }
+  .live-share { margin-top: 6px; }
+  .live-share > span { display: flex; align-items: center; gap: 5px; color: #9ba2a9; font: 7px var(--mono); }
+  .live-share > span > i { width: 5px; height: 5px; border-radius: 50%; }
+  .live-share > span b { margin-left: auto; color: #cbd2c5; font-weight: 400; }
+  .live-share > i { display: block; height: 3px; margin-top: 4px; background: #ffffff0c; }
+  .live-share > i > b { display: block; height: 100%; transition: width .25s; }
+  .live-secondary-market { display: flex; flex-direction: column; gap: 5px; margin-top: 12px; padding: 9px; border: 1px solid #ffffff0b; background: #ffffff03; }
+  .live-secondary-market strong { font-size: 9px; line-height: 1.4; color: #b9c0c8; }
+  .live-secondary-market small { color: #7e8990; font: 7px var(--mono); }
   .prediction-panel > .panel-heading { padding: 0; border: 0; }
   .prediction-panel > .panel-heading h2 { font-size: 10px; }
   .prediction-panel > .panel-heading h2 > svg { color: var(--lime); }
@@ -352,6 +403,11 @@
   .history-stats > div:first-child { border: 0; padding: 0; }
   .history-stats span { display: block; font: 7px var(--mono); color: #97a0ad; letter-spacing: .5px; }
   .history-stats strong { font: 18px var(--mono); display: block; margin-top: 9px; }
+  .live-history-summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: -9px 0 24px; padding: 12px 0; border-top: 1px solid #d6f65c1b; border-bottom: 1px solid var(--line); }
+  .live-history-summary > div { padding-left: 10px; border-left: 1px solid var(--line); }
+  .live-history-summary > div:first-child { padding-left: 0; border-left: 0; }
+  .live-history-summary span { display: block; color: #8e9a91; font: 7px var(--mono); }
+  .live-history-summary strong { display: block; margin-top: 6px; color: #d6dfbe; font: 13px var(--mono); }
   .dialog-tabs { display: flex; border-bottom: 1px solid var(--line); gap: 23px; margin-bottom: 12px; }
   .dialog-tabs button { padding: 10px 0; font-size: 12px; text-transform: capitalize; color: #959cab; border-bottom: 2px solid transparent; }
   .dialog-tabs button.selected { color: var(--lime); border-color: var(--lime); }
@@ -367,6 +423,9 @@
   .history-status.won { color: var(--lime); }
   .history-status.lost { color: #f08794; }
   .history-status.pending { color: #c6b2e9; }
+  .history-status.won { color: var(--lime); }
+  .history-status.lost { color: #f08794; }
+  .history-status.push, .history-status.void, .history-status.expired { color: #f3b95b; }
   .achievements-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; }
   .achievement { position: relative; border: 1px solid #2c313a; border-radius: 5px; color: #687383; padding: 18px; display: flex; flex-direction: column; gap: 9px; }
   .achievement strong { font-size: 13px; }
@@ -578,6 +637,14 @@
     .fighter-row { height: 107px; }
     .fighter-row .avatar { width: 38px !important; height: 38px !important; }
     .prediction-panel { padding: 0 18px 18px; }
+    .live-prediction-panel .panel-heading { padding: 0 18px; }
+    .live-prediction-body { padding: 15px 18px 18px; }
+    .live-prediction-question strong { font-size: 14px; }
+    .live-selection { min-height: 35px; font-size: 10px; }
+    .live-wager-input { height: 43px; }
+    .live-quick-amounts button { height: 30px; font-size: 10px; }
+    .live-prediction-panel .bet-random-actions button { height: 31px; font-size: 8px; }
+    .live-prediction-panel .primary-button { height: 43px; font-size: 10px; }
     .prediction-panel > .panel-heading { min-height: 51px; }
     .prediction-panel > .panel-heading h2 { font-size: 11px; }
     .betting-status { font-size: 8px; height: 30px; }
@@ -660,6 +727,9 @@
     .balance-summary > span { font-size: 8px; }
     .history-stats strong { font-size: 15px; }
     .history-stats span { font-size: 6px; }
+    .live-history-summary { grid-template-columns: repeat(2, 1fr); gap: 12px 8px; }
+    .live-history-summary > div:nth-child(3) { padding-left: 0; border-left: 0; }
+    .live-history-summary strong { font-size: 12px; }
     .history-row { gap: 8px; }
     .history-row strong { font-size: 10px; }
     .history-row strong > span { font-size: 6px; }
