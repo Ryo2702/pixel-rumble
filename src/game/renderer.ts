@@ -26,7 +26,7 @@ export async function createArena(host: HTMLDivElement, engine: GameEngine, sele
   let selected = 'byte', arenaId = '', disposed = false;
   const audio = new ArcadeAudio(); audio.configure(engine.save.settings);
   let neonTexture: Texture | null = null;
-  try { neonTexture = await Assets.load<Texture>('/images/neon-district.png'); neonTexture.source.scaleMode = 'nearest'; } catch { /* The procedural arena remains playable if the image fails. */ }
+  let neonRequested = false;
   const atlas = document.createElement('canvas'); atlas.width = SPRITE_WIDTH * 4; atlas.height = SPRITE_HEIGHT * engine.fighters.length;
   const ctx = atlas.getContext('2d')!;
   engine.fighters.forEach((f, row) => { for (let frame = 0; frame < 4; frame++) { ctx.save(); ctx.translate(frame * SPRITE_WIDTH, row * SPRITE_HEIGHT); drawFighter(ctx, f, frame); ctx.restore(); } });
@@ -62,6 +62,14 @@ export async function createArena(host: HTMLDivElement, engine: GameEngine, sele
   function drawBackground() {
     const old = background.removeChildren(); old.forEach(child => { if (child !== hazardArt) child.destroy({ children: true }); });
     arenaId = engine.arena.id;
+    if (arenaId === 'neon' && !neonRequested) {
+      neonRequested = true;
+      void Assets.load<Texture>(new URL('../assets/neon-district.webp', import.meta.url).href).then(texture => {
+        if (disposed) return;
+        neonTexture = texture; texture.source.scaleMode = 'nearest';
+        if (engine.arena.id === 'neon') arenaId = '';
+      }).catch(() => { /* Keep the procedural arena playable if the image fails. */ });
+    }
     if (arenaId === 'neon' && neonTexture) {
       const image = new Sprite(neonTexture); image.width = CONFIG.width; image.height = CONFIG.height; background.addChild(image);
       background.addChild(new Graphics().rect(0, 0, CONFIG.width, CONFIG.height).fill({ color: '#111321', alpha: 0.14 }));

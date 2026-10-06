@@ -1,3 +1,10 @@
+@import '@fontsource/space-grotesk/latin-400.css';
+@import '@fontsource/space-grotesk/latin-500.css';
+@import '@fontsource/space-grotesk/latin-600.css';
+@import '@fontsource/space-grotesk/latin-700.css';
+@import '@fontsource/space-mono/latin-400.css';
+@import '@fontsource/space-mono/latin-700.css';
+@import '@fontsource/silkscreen/latin-400.css';
 @layer reset, base, layout, components, responsive;
 @layer reset {
   *, *::before, *::after { box-sizing: border-box; }
@@ -10,6 +17,12 @@
   img, svg { flex-shrink: 0; }
 }
 @layer base {
+  .skip-link { position: fixed; top: 8px; left: 8px; transform: translateY(-160%); z-index: 100; padding: 12px; background: var(--lime); color: #10150a; }
+  .skip-link:focus { transform: none; }
+  .game-placeholder { min-height: 100svh; padding: 120px 30px; }
+  .game-placeholder p { margin-top: 20px; }
+  .game-placeholder a, .site-footer a, .game-about a, .about-page a { color: #c7d799; text-underline-offset: 4px; }
+  .panel-loading { position: fixed; right: 24px; bottom: 24px; z-index: 50; padding: 16px; background: var(--panel); border: 1px solid var(--line); }
   :root { font-family: 'Space Grotesk', sans-serif; color: #e8e9ee; background: #0d0f13; font-synthesis: none; --lime: #d6f65c; --muted: #89909f; --panel: #14171d; --line: #2a2d36; --mono: 'Space Mono', monospace; --pixel: 'Silkscreen', monospace; color-scheme: dark; }
   body { min-width: 360px; }
   button { border: 0; background: none; }
@@ -112,6 +125,25 @@
   .save-warning { padding: 10px 14px; margin-bottom: 15px; background: #f3b95b12; color: #f3b95b; border: 1px solid #f3b95b33; font-size: 12px; border-radius: 4px; }
 }
 @layer components {
+  .game-about { padding: 10px 30px 24px; color: #9ea6b4; font-size: 12px; line-height: 1.8; }
+  .game-about h2 { font-size: 14px; color: #c6cbd4; margin-bottom: 8px; }
+  .game-about p { max-width: 940px; }
+  .game-about p + p { margin-top: 6px; }
+  .site-footer { flex-wrap: wrap; font-size: 11px; line-height: 1.8; }
+  .site-footer .footer-credit { display: block; }
+  .site-footer .footer-brand { text-decoration: none; color: #bec2ca; }
+  .site-footer .footer-credit p { display: block; margin: 5px 0 2px; font-size: 11px; }
+  .site-footer small { color: #a2aab7; font-size: 10px; }
+  .site-footer nav, .about-page nav { display: flex; flex-wrap: wrap; gap: 12px 22px; }
+  .site-footer .footer-disclaimer { font-size: 10px; }
+  .about-page { max-width: 880px; padding: 40px 24px 60px; margin: auto; line-height: 1.9; }
+  .about-page nav { font-size: 13px; margin-bottom: 44px; }
+  .about-page h1 { font: 32px/1.4 var(--pixel); margin-bottom: 24px; }
+  .about-page h1 span { display: block; color: var(--lime); font-size: 14px; margin-top: 10px; }
+  .about-page h2 { font-size: 20px; margin-bottom: 12px; }
+  .about-page p { color: #adb5c3; font-size: 15px; }
+  .about-page p + p { margin-top: 12px; }
+  .about-page section { margin-top: 32px; scroll-margin-top: 24px; }
   .roster-tabs { margin: 14px 13px 0; border: 1px solid #30333d; border-radius: 4px; padding: 3px; display: flex; background: #111419; }
   .roster-tabs button { display: flex; align-items: center; justify-content: center; gap: 6px; width: 50%; font-size: 10px; color: #8b929e; height: 28px; border-radius: 2px; }
   .roster-tabs button.selected { background: #292d34; color: #e4e7ed; box-shadow: 0 1px 3px #0003; }

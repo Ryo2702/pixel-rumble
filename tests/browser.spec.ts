@@ -1,5 +1,47 @@
 import { test, expect } from '@playwright/test';
 
+test('arena starts while its backdrop is still downloading and panels load on demand', async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  let requested = false;
+  await page.route('**/neon-district*.webp', async route => { requested = true; await pending; await route.continue(); });
+  const dialogs: string[] = [];
+  page.on('request', request => { if (request.url().includes('/Dialogs')) dialogs.push(request.url()); });
+  try {
+    await page.goto('/');
+    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('.arena-loading')).toHaveCount(0, { timeout: 20000 });
+    await expect.poll(() => requested).toBe(true);
+    expect(dialogs).toHaveLength(0);
+    await page.getByRole('button', { name: 'Settings', exact: true }).click();
+    await expect(page.getByRole('dialog')).toBeVisible();
+    expect(dialogs.length).toBeGreaterThan(0);
+  } finally {
+    release();
+    await page.unrouteAll({ behavior: 'wait' });
+  }
+});
+
+test('credits, metadata, and navigation work with JavaScript disabled', async ({ browser, baseURL }) => {
+  const context = await browser.newContext({ javaScriptEnabled: false, baseURL, viewport: { width: 390, height: 844 } });
+  try {
+    const page = await context.newPage();
+    await page.goto('/');
+    await expect(page).toHaveTitle('Pixel Rumble | 2D Pixel Auto-Battle Game');
+    await expect(page.getByRole('heading', { name: 'What is Pixel Rumble?' })).toBeVisible();
+    await page.getByRole('link', { name: 'About & Credits', exact: true }).click();
+    await expect(page.getByRole('heading', { name: 'Who developed Pixel Rumble?' })).toBeVisible();
+    await expect(page.locator('#credits')).toContainText('SEO Specialist');
+    await expect(page.locator('#credits a').first()).toHaveAttribute('href', 'https://freelance-charles.vercel.app/');
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    await page.screenshot({ path: '/tmp/pixel-rumble-credits-mobile.png', fullPage: true });
+    await page.getByRole('link', { name: 'Back to the arena' }).click();
+    await expect(page).toHaveURL('/');
+  } finally {
+    await context.close();
+  }
+});
+
 test('desktop predictions, profiles, settings, market, and a live round', async ({ page }) => {
   const errors: string[] = [];
   page.on('pageerror', error => errors.push(error.message));

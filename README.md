@@ -27,6 +27,8 @@ Special rounds cycle through Standard Rumble, Double Rewards, Underdog Bonus, To
 
 ## Architecture and balancing
 
+- `src/config/developer.ts`: single source for creator name, portfolio, and roles. Footer, credits, author metadata, and structured data are rendered from this configuration at build time.
+- `seo.ts`, `index.html`, and `about.html`: static metadata and crawlable content outside the client game. The About/Credits page does not load React, PixiJS, or the simulation.
 - `src/config/game.ts`: fighters, classes, weapons, arena traits, phase timing, stakes, odds, rewards, respawn rules, volatility, particles, and default audio settings.
 - `src/game/engine.ts`: renderer-independent simulation, class AI, hazards, boss combat, round state machine, statistics, market event updates, and effect events. Accepts an RNG and persistence adapter for deterministic checks. Publishes immutable UI snapshots five times per second; positions remain in the simulation.
 - `src/game/renderer.ts`: lazy-loaded PixiJS renderer, texture atlas, depth sorting, pooled particles/damage labels/projectiles, hazards, rain, adaptive effect density, GSAP reconstruction and announcements. Rendering and combat pause in hidden tabs; resources and event handlers are cleaned up on unmount.
@@ -46,3 +48,17 @@ The simulation is intentionally local and spectator-only. A future backend must 
 `public/images/neon-district.png` is an original backdrop generated with the built-in Imagegen tool. Final prompt: “Detailed 16-bit pixel-art rainy midnight cyberpunk city rooftop fight arena; no fighters, text UI or HUD; broad open tiled rooftop, indigo skyline, lavender moon, cyan and fuchsia edge lighting, atmospheric reflections, crisp square pixels, spacious low-contrast combat floor.” Other arenas and all fighter sprites are rendered from native game geometry and the shared sprite atlas.
 
 PixiJS integration follows the [official v8 Application documentation](https://pixijs.com/8.x/guides/components/application).
+
+## SEO and deployment
+
+The production origin is `https://pixel-rumble-fawn.vercel.app/`, configured through `SITE_URL` in `.env.production`. Override `SITE_URL` in the hosting environment if the domain changes, then rebuild. It must be an HTTPS origin with no subpath, query, or fragment. Never use the developer portfolio as the game's canonical URL.
+
+`npm run build` emits `/index.html`, `/about.html`, `/robots.txt`, and `/sitemap.xml` with matching canonical and social URLs. The HTML includes `Person`, `WebSite`, `VideoGame` / `WebApplication`, and page entities linked by stable IDs. Only the supplied creator details are used; no reviews, social accounts, or credentials are inferred. Development, Vercel preview deployments, and builds without a configured origin are noindex; the production build is indexable. Deploy the full `dist` directory, including the separate About page. Keep real 404 responses for unknown URLs instead of a catch-all rewrite to the game.
+
+The static About page explains gameplay, credits, and every simulated aspect of the economy. The homepage includes a short description and linked developer footer. Neither depends on canvas rendering. This follows [Google's JavaScript SEO guidance on prerendered content](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics).
+
+`public/site.webmanifest`, the existing SVG favicon, and PNG app/touch icons provide browser branding. `public/images/pixel-rumble-social.png` is a 1200 × 630 preview composed from the actual arena and shared fighter sprites. To regenerate the image, icons, and optimized backdrop, start the development server on port 5174 and run `node scripts/generate-sharing.mjs` (requires Chromium at `/usr/bin/chromium`).
+
+The renderer loads the 454 KB WebP backdrop on demand without blocking combat initialization; the original 2.7 MB PNG remains the artwork source. Other arenas and sprite sheets are generated locally only when needed. Audio is synthesized after user interaction, so there are no music or sound downloads to preload. Dialogs load on first use. Fonts are self-hosted Latin subsets with `font-display: swap`; arena dimensions remain reserved by the existing CSS. `vercel.json` caches hashed build assets immutably and allows public images/icons to revalidate daily. No service worker is added.
+
+`npm test` validates production SEO output, entity references, sitemap, preview indexing behavior, and image sizes alongside the simulation checks. `npx playwright test` also checks JavaScript-disabled navigation/credits, mobile overflow, deferred dialogs, and playable startup with a delayed backdrop. Core Web Vitals still require field measurement on the deployed site; local checks are not a field performance score.
