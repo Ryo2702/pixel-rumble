@@ -17,11 +17,3 @@ export const AUDIENCE = {
   suffixes: ['Wolf', 'Neko', 'Knight', 'Pilot', 'King', 'Queen', 'Hunter', 'Slayer', 'Trader', 'Runner', 'Fox', 'Cat', 'Panda', 'Tiger', 'Raven', 'Owl', 'Brawler', 'Ninja', 'Ronin', 'Rider', 'Drifter', 'Witch', 'Wizard', 'Ghost', 'Sprite', 'Warden', 'Nomad', 'Oracle', 'Bandit', 'Mantis', 'Raptor', 'Rebel', 'Kid', 'Sage', 'Phantom', 'Falcon', 'Jester', 'Specter', 'Samurai', 'Dreamer'],
   colors: ['#ae8cf5', '#6cdae5', '#eca86f', '#e879bb', '#91cc82', '#f0d26c', '#749be8', '#ee858c'],
 };
-// Deliberately fictional starting quotes. Never a source of odds or bet settlement.
-export const MARKET_ASSETS = [
-  { symbol: 'BTC', name: 'Bitcoin', price: 67420.51, color: '#edb265', volatility: 0.0013 },
-  { symbol: 'ETH', name: 'Ethereum', price: 3420.18, color: '#b0a1f6', volatility: 0.0018 },
-  { symbol: 'SOL', name: 'Solana', price: 148.76, color: '#87e1be', volatility: 0.0028 },
-  { symbol: 'DOGE', name: 'Dogecoin', price: 0.18, color: '#dec781', volatility: 0.004 },
-  { symbol: 'XRP', name: 'XRP', price: 0.62, color: '#a9c5de', volatility: 0.0022 },
-];

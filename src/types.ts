@@ -6,13 +6,13 @@ export type RoundEvent = 'STANDARD RUMBLE' | 'DOUBLE REWARDS' | 'UNDERDOG BONUS'
 export interface FighterConfig {
   id: string; name: string; title: string; class: FighterClass; weapon: string; color: string;
   maxHealth: number; attack: number; defense: number; speed: number; critical: number; dodge: number; aggression: number;
-  token: string; price: number; wins: number; losses: number; kills: number; deaths: number; appearance: number;
+  wins: number; losses: number; kills: number; deaths: number; appearance: number;
 }
 export interface Fighter extends FighterConfig {
   health: number; x: number; y: number; facing: number; moving: boolean; cooldown: number; specialCooldown: number;
   respawn: number; attackFlash: number; hurtFlash: number; invulnerable: number; streak: number; longestStreak: number;
-  roundKills: number; roundDamage: number; aliveTime: number; odds: number; change: number; priceHistory: number[];
-  recent: boolean[]; recentDeaths: number; roundStartPrice: number; totalVolume: number; popularity: number; targetId: string | null;
+  roundKills: number; roundDamage: number; aliveTime: number; odds: number;
+  recent: boolean[]; recentDeaths: number; popularity: number; targetId: string | null;
 }
 export interface ArenaConfig {
   id: string; name: string; subtitle: string; color: string; hazard: string; hazardDamage: number; hazardRadius: number; gravity: number; favored: FighterClass; music: number;

@@ -27,7 +27,6 @@ export class GameEngine {
   elapsed = 0;
   private publication = 0;
   private hazardClock = 0;
-  private marketClock = 0;
   private feedId = 0;
   private listeners = new Set<() => void>();
   private effectListeners = new Set<(event: CombatEvent) => void>();
@@ -41,7 +40,7 @@ export class GameEngine {
     this.round = Math.max(this.save.roundsWatched + 1, ...this.save.predictions.map(p => p.round + 1));
     this.arenaIndex = Math.floor((this.round - 1) / 2) % ARENAS.length;
     this.event = CONFIG.events[(this.round - 1) % CONFIG.events.length];
-    this.fighters = FIGHTERS.map((f, i) => ({ ...f, health: f.maxHealth, x: 175 + (i % 4) * 200, y: 335 + Math.floor(i / 4) * 130, facing: i % 2 ? -1 : 1, moving: false, cooldown: i * 0.2, specialCooldown: 3 + i, respawn: 0, attackFlash: 0, hurtFlash: 0, invulnerable: 0, streak: 0, longestStreak: 3 + i % 4, roundKills: 0, roundDamage: 0, aliveTime: 0, odds: 1, change: 0, priceHistory: Array.from({ length: 24 }, (_, j) => f.price * (0.9 + j * 0.004 + Math.sin(j * 1.5 + i) * 0.03)), recent: Array.from({ length: 7 }, (_, n) => (n + i) % 3 !== 0), recentDeaths: 0, roundStartPrice: f.price, totalVolume: 12500 + i * 3120, popularity: 10 + (8 - i) * 2, targetId: null }));
+    this.fighters = FIGHTERS.map((f, i) => ({ ...f, health: f.maxHealth, x: 175 + (i % 4) * 200, y: 335 + Math.floor(i / 4) * 130, facing: i % 2 ? -1 : 1, moving: false, cooldown: i * 0.2, specialCooldown: 3 + i, respawn: 0, attackFlash: 0, hurtFlash: 0, invulnerable: 0, streak: 0, longestStreak: 3 + i % 4, roundKills: 0, roundDamage: 0, aliveTime: 0, odds: 1, recent: Array.from({ length: 7 }, (_, n) => (n + i) % 3 !== 0), recentDeaths: 0, popularity: 10 + (8 - i) * 2, targetId: null }));
     calculateOdds(this.fighters, this.arena);
     this.audience.beginRound(this.round, this.fighters, this.event);
     this.addFeed('The gates are open', 'Choose your fighter. Make your call.', '#d8fa42', 'round');
@@ -60,7 +59,7 @@ export class GameEngine {
   }
   private publish() {
     const { community: _community, ...uiSave } = this.save;
-    this.snapshot = { phase: this.phase, remaining: Math.ceil(this.remaining), round: this.round, arena: this.arena, event: this.event, fighters: this.fighters.map(f => ({ ...f, priceHistory: [...f.priceHistory], recent: [...f.recent] })), feed: [...this.feed], save: { ...uiSave, settings: { ...this.save.settings }, predictions: this.save.predictions.map(p => ({ ...p })), transactions: [...this.save.transactions] }, audience: this.audience.snapshot(), winner: this.winner, boss: this.boss ? { ...this.boss } : null, roundKills: this.fighters.reduce((sum, f) => sum + f.roundKills, 0), speed: this.speed, storageError: this.storageError };
+    this.snapshot = { phase: this.phase, remaining: Math.ceil(this.remaining), round: this.round, arena: this.arena, event: this.event, fighters: this.fighters.map(f => ({ ...f, recent: [...f.recent] })), feed: [...this.feed], save: { ...uiSave, settings: { ...this.save.settings }, predictions: this.save.predictions.map(p => ({ ...p })), transactions: [...this.save.transactions] }, audience: this.audience.snapshot(), winner: this.winner, boss: this.boss ? { ...this.boss } : null, roundKills: this.fighters.reduce((sum, f) => sum + f.roundKills, 0), speed: this.speed, storageError: this.storageError };
     this.listeners.forEach(listener => listener());
   }
   private persist() {
@@ -120,8 +119,6 @@ export class GameEngine {
     }
     if (this.phase === 'rumble') {
       this.tickCombat(combatDelta);
-      this.marketClock += dt;
-      if (this.marketClock > 3) { this.marketClock = 0; this.fighters.forEach(f => this.moveMarket(f, (this.random() - 0.5) * CONFIG.market.volatility)); }
     }
     this.audience.update(dt, this.phase, this.remaining, this.fighters);
     this.publication += realDelta;
@@ -152,9 +149,7 @@ export class GameEngine {
     this.fighters.forEach((f, i) => {
       f.health = f.maxHealth; f.roundKills = 0; f.roundDamage = 0; f.aliveTime = 0; f.respawn = 0;
       f.x = 175 + (i % 4) * 200; f.y = 335 + Math.floor(i / 4) * 130; f.recentDeaths *= 0.6;
-      f.roundStartPrice = f.price; f.specialCooldown = 3 + i; f.cooldown = this.random(); f.targetId = null;
-      if (this.event === 'TOKEN CRASH') this.moveMarket(f, -0.12 - this.random() * 0.1);
-      if (this.event === 'TOKEN SURGE') this.moveMarket(f, 0.12 + this.random() * 0.1);
+      f.specialCooldown = 3 + i; f.cooldown = this.random(); f.targetId = null;
     });
     calculateOdds(this.fighters, this.arena);
     this.audience.beginRound(this.round, this.fighters, this.event);
@@ -257,10 +252,8 @@ export class GameEngine {
     else this.emit({ kind: 'hit', x: target.x, y: target.y, color: '#ff7878', amount: Math.round(amount) });
     if (target.health > 0) return;
     target.deaths++; target.recentDeaths++; target.streak = 0; target.respawn = CONFIG.combat.respawn;
-    this.moveMarket(target, CONFIG.market.death);
     if (killer) {
       killer.kills++; killer.roundKills++; killer.streak++; killer.longestStreak = Math.max(killer.streak, killer.longestStreak);
-      this.moveMarket(killer, CONFIG.market.kill * (1 + killer.streak * 0.15));
       if (killer.streak >= 3) this.addFeed(`${killer.name} is on a ${killer.streak} kill streak`, 'The arena has a new problem.', killer.color, 'streak');
       const underdogLeading = killer.odds >= 8 && killer.roundKills >= Math.max(...this.fighters.map(f => f.roundKills));
       this.audience.signal({ kind: killer.streak >= 3 ? 'streak' : underdogLeading ? 'upset' : 'kill', fighter: killer.name, victim: target.name, odds: killer.odds });
@@ -276,13 +269,6 @@ export class GameEngine {
     if (this.phase === 'rumble') this.addFeed(`${f.name} is back in the fight`, 'Reconstruction complete.', f.color, 'respawn');
     this.emit({ kind: 'respawn', x: f.x, y: f.y, color: f.color, fighterId: f.id });
   }
-  private moveMarket(f: Fighter, change: number) {
-    f.price = Math.max(CONFIG.market.minPrice, f.price * (1 + change));
-    f.change = (f.price / f.roundStartPrice - 1) * 100;
-    f.priceHistory.push(f.price); f.priceHistory = f.priceHistory.slice(-32);
-    f.totalVolume += Math.round(100 + this.random() * 450);
-    f.popularity = Math.min(99, Math.max(1, f.popularity + change * 25));
-  }
   private finishRound() {
     const rank = [...this.fighters].sort((a, b) => {
       if (this.event === 'BOSS INVASION') return b.roundDamage - a.roundDamage;
@@ -292,7 +278,7 @@ export class GameEngine {
     this.winner = rank[0].id;
     this.fighters.forEach(f => {
       const won = f.id === this.winner;
-      if (won) { f.wins++; this.moveMarket(f, CONFIG.market.win * (f.odds > 8 ? 1.6 : 1)); } else f.losses++;
+      if (won) f.wins++; else f.losses++;
       f.recent.push(won); f.recent = f.recent.slice(-10);
     });
     const damageWinner = [...this.fighters].sort((a, b) => b.roundDamage - a.roundDamage)[0].id;
@@ -312,7 +298,7 @@ export class GameEngine {
     this.save.transactions = this.save.transactions.slice(0, 100);
     this.save.roundsWatched++;
     if (this.save.roundsWatched >= 10) this.achievement('Arena regular');
-    this.addFeed(this.boss ? `${teamWinner === 'boss' ? 'The Overlord' : 'The fighters'} wins` : `${rank[0].name} takes the crown`, this.boss ? `Top damage: ${rank[0].name} · +${money(CONFIG.economy.spectatorReward)} simulated reward` : `${rank[0].roundKills} eliminations · +${money(CONFIG.economy.spectatorReward)} simulated reward`, rank[0].color, 'winner');
+    this.addFeed(this.boss ? `${teamWinner === 'boss' ? 'The Overlord' : 'The fighters'} wins` : `${rank[0].name} takes the crown`, this.boss ? `Top damage: ${rank[0].name} · +${money(CONFIG.economy.spectatorReward)} in-game reward` : `${rank[0].roundKills} eliminations · +${money(CONFIG.economy.spectatorReward)} in-game reward`, rank[0].color, 'winner');
     this.hazard = null;
     this.persist();
   }

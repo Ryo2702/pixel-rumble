@@ -1,12 +1,1 @@
-import { Activity, ArrowUpRight, ShieldCheck } from 'lucide-react';
-import { motion } from 'motion/react';
-import { Sparkline } from './Primitives';
-import { money } from '../economy/money';
-import type { MarketQuote } from '../simulation/types';
-
-export function MarketTicker({ quotes, open }: { quotes: MarketQuote[]; open: () => void }) {
-  return <section className="crypto-strip" aria-label="Simulated cryptocurrency market"><div className="crypto-strip-label"><Activity size={15}/><strong>SIMULATED<br/>MARKET</strong><span>NO REAL ASSETS</span></div><div className="crypto-strip-quotes">{quotes.map(quote => <button key={quote.symbol} className="crypto-quote" onClick={open}><span><b style={{ color: quote.color }}>{quote.symbol}</b><small>{quote.name}</small><ArrowUpRight size={10}/></span><strong>{money(quote.price)}</strong><div><span className={quote.change >= 0 ? 'positive' : 'negative'}>{quote.change >= 0 ? '+' : ''}{quote.change.toFixed(2)}%</span><Sparkline values={quote.history} color={quote.change >= 0 ? '#9cdeb2' : '#f08794'} width={64} height={22}/></div></button>)}</div><button className="market-strip-open" onClick={open} aria-label="View market"><ArrowUpRight size={15}/></button></section>;
-}
-export function MarketView({ quotes }: { quotes: MarketQuote[] }) {
-  return <><div className="market-notice"><ShieldCheck size={22}/><div><strong>SIMULATED MARKET · NO REAL ASSETS</strong><p>Recognizable names. Entirely invented prices, charts, and activity. This feed does not use live market data, control betting outcomes, or represent assets you own.</p></div></div><div className="crypto-market-cards">{quotes.map(quote => <motion.article className="crypto-market-card" key={quote.symbol} whileHover={{ y: -2 }}><div className="crypto-card-title"><span className="crypto-symbol" style={{ color: quote.color }}>{quote.symbol === 'BTC' ? '₿' : quote.symbol[0]}</span><div><h3>{quote.name}</h3><span>{quote.symbol}</span></div><span className="small-tag">SIMULATED</span></div><strong>{money(quote.price)}</strong><span className={quote.change >= 0 ? 'positive' : 'negative'}>{quote.change >= 0 ? '+' : ''}{quote.change.toFixed(2)}% <small>since simulation open</small></span><Sparkline values={quote.history} color={quote.color} width={280} height={80}/><p>Simulated volume <b>{money(quote.volume)}</b></p></motion.article>)}</div><p className="dialog-description">Dollar balances and market values have no cash value. No deposits, withdrawals, payments, external wallets, or blockchain transactions. The betting engine settles only against arena results.</p></>;
-}
+export { MarketTicker, MarketView } from '../crypto/CryptoMarket';

@@ -21,7 +21,7 @@ export function validateWager(amount: number, balance: number): string | null {
   if (!Number.isFinite(amount) || Math.abs(amount - roundMoney(amount)) > 1e-8) return 'Enter a dollar amount with at most two decimal places.';
   if (amount < CONFIG.economy.minWager) return `Minimum prediction is ${money(CONFIG.economy.minWager)}.`;
   if (amount > CONFIG.economy.maxWager) return `Maximum prediction is ${money(CONFIG.economy.maxWager)}.`;
-  if (amount > balance) return 'Not enough simulated dollars.';
+  if (amount > balance) return 'Not enough in-game credits.';
   return null;
 }
 export function settlePrediction(save: SaveData, prediction: Prediction, won: boolean): number {

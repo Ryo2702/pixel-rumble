@@ -8,7 +8,6 @@ import { currentPeriods, periodKeys, rankSpectators, recordResult } from './lead
 import { resultSummary, settleAudience } from './payoutEngine';
 import { ReactionEngine } from './reactionEngine';
 import { createUser, generateSpectators, SeededRandom, validSpectator } from './spectatorGenerator';
-import { SimulatedMarketProvider } from './simulatedMarket';
 import type { Fighter, Phase, Prediction, RoundEvent } from '../types';
 import type { AudienceBet, AudienceSave, AudienceSignal, AudienceSnapshot, CrowdShare, LeaderboardMetric, RoundOutcomes, RoundResults, Spectator, TimeFilter } from './types';
 
@@ -16,7 +15,6 @@ export class AudienceEngine {
   readonly spectators: Spectator[];
   readonly user: Spectator;
   readonly activity: CrowdActivity;
-  readonly market: SimulatedMarketProvider;
   readonly reactions: ReactionEngine;
   private random: SeededRandom;
   private people: Map<string, Spectator>;
@@ -48,7 +46,6 @@ export class AudienceEngine {
     this.user = stored?.user && validSpectator(stored.user) && stored.user.id === 'you' ? stored.user : createUser(now());
     this.people = new Map(this.spectators.map(person => [person.id, person]));
     this.activity = new CrowdActivity(Number.isFinite(stored?.watchers) ? Math.max(0, Math.min(AUDIENCE.population, stored!.watchers)) : AUDIENCE.baseWatchers);
-    this.market = new SimulatedMarketProvider(seed, Array.isArray(stored?.market) ? stored.market : undefined);
     this.reactions = new ReactionEngine(this.random.next);
     this.lastSettledRound = valid && Number.isSafeInteger(stored.lastSettledRound) ? stored.lastSettledRound : 0;
     const results = stored?.results;
@@ -64,7 +61,6 @@ export class AudienceEngine {
   }
   signal(signal: AudienceSignal) {
     this.activity.signal(signal);
-    this.market.signal(signal);
     this.reactions.signal(signal, this.spectators, this.now(), this.activity.elapsed);
   }
   beginRound(round: number, fighters: Fighter[], event: RoundEvent) {
@@ -101,7 +97,7 @@ export class AudienceEngine {
     this.clock += dt;
     if (this.clock < AUDIENCE.tickSeconds) return;
     const step = AUDIENCE.tickSeconds; this.clock -= step;
-    this.activity.update(step); this.market.update(step);
+    this.activity.update(step);
     if (phase !== 'betting' || this.locked) return;
     this.betBudget += this.activity.betRate(remaining, CONFIG.phases.betting) * step;
     const batch = Math.min(AUDIENCE.maxBetsPerTick, Math.floor(this.betBudget));
@@ -154,9 +150,9 @@ export class AudienceEngine {
   }
   snapshot(): AudienceSnapshot {
     const board = this.leaderboard();
-    return { watchers: Math.round(this.activity.watchers), betCount: this.count, totalBets: this.total, excitement: this.activity.excitement, locked: this.locked, recentBets: this.displayBets.map(b => ({ ...b })), distribution: this.shares.map(s => ({ ...s })), reactions: [...this.reactions.messages], results: this.results, leaders: board.rows.slice(0, 5), userRank: board.user, revision: this.revision, market: this.market.getQuotes() };
+    return { watchers: Math.round(this.activity.watchers), betCount: this.count, totalBets: this.total, excitement: this.activity.excitement, locked: this.locked, recentBets: this.displayBets.map(b => ({ ...b })), distribution: this.shares.map(s => ({ ...s })), reactions: [...this.reactions.messages], results: this.results, leaders: board.rows.slice(0, 5), userRank: board.user, revision: this.revision };
   }
   export(): AudienceSave {
-    return { version: 1, rng: this.random.state, spectators: this.spectators, user: this.user, pending: this.bets.filter(b => b.status === 'pending' && !b.isUser), watchers: this.activity.watchers, lastSettledRound: this.lastSettledRound, results: this.results, market: this.market.getQuotes() };
+    return { version: 1, rng: this.random.state, spectators: this.spectators, user: this.user, pending: this.bets.filter(b => b.status === 'pending' && !b.isUser), watchers: this.activity.watchers, lastSettledRound: this.lastSettledRound, results: this.results };
   }
 }

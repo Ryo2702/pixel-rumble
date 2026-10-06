@@ -35,7 +35,7 @@ try {
     ctx.fillStyle = '#e0e3ec'; ctx.font = '17px "Space Mono"';
     ctx.fillText('WATCH · PREDICT · RUMBLE', 600, 539);
     ctx.fillStyle = '#b4bccc'; ctx.font = '13px "Space Mono"';
-    ctx.fillText('FICTIONAL ECONOMY. NO REAL MONEY.', 600, 570);
+    ctx.fillText('IN-GAME ECONOMY. NO REAL MONEY.', 600, 570);
     const result = { 'public/images/pixel-rumble-social.png': canvas.toDataURL('image/png') };
     // Re-encode the existing arena without changing its dimensions or artwork.
     canvas.width = backdrop.naturalWidth; canvas.height = backdrop.naturalHeight;

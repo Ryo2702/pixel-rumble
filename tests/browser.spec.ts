@@ -1,5 +1,4 @@
 import { test, expect } from '@playwright/test';
-import { MARKET_ASSETS } from '../src/config/audience';
 
 test('arena starts while its backdrop is still downloading and panels load on demand', async ({ page }) => {
   await page.setViewportSize({ width: 1440, height: 1080 });
@@ -24,19 +23,19 @@ test('arena starts while its backdrop is still downloading and panels load on de
   }
 });
 
-test('credits, metadata, and navigation work with JavaScript disabled', async ({ browser, baseURL }) => {
+test('how-it-works metadata and navigation work with JavaScript disabled', async ({ browser, baseURL }) => {
   const context = await browser.newContext({ javaScriptEnabled: false, baseURL, viewport: { width: 390, height: 844 } });
   try {
     const page = await context.newPage();
     await page.goto('/');
     await expect(page).toHaveTitle('Pixel Rumble | 2D Pixel Auto-Battle Game');
     await expect(page.getByRole('heading', { name: 'What is Pixel Rumble?' })).toBeVisible();
-    await page.getByRole('link', { name: 'About & Credits', exact: true }).click();
-    await expect(page.getByRole('heading', { name: 'Who developed Pixel Rumble?' })).toBeVisible();
-    await expect(page.locator('#credits')).toContainText('SEO Specialist');
-    await expect(page.locator('#credits a').first()).toHaveAttribute('href', 'https://freelance-charles.vercel.app/');
+    await page.getByRole('link', { name: 'How It Works', exact: true }).click();
+    await expect(page.getByRole('heading', { name: /HOW IT WORKS/ })).toBeVisible();
+    await expect(page.locator('body')).not.toContainText('Designed & Developed by');
+    await expect(page.locator('body')).not.toContainText('Developer Portfolio');
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
-    await page.screenshot({ path: '/tmp/pixel-rumble-credits-mobile.png', fullPage: true });
+    await page.screenshot({ path: '/tmp/pixel-rumble-how-it-works-mobile.png', fullPage: true });
     await page.getByRole('link', { name: 'Back to the arena' }).click();
     await expect(page).toHaveURL('/');
   } finally {
@@ -67,13 +66,15 @@ test('desktop predictions, profiles, settings, market, and a live round', async 
   await page.getByRole('switch', { name: 'Screen shake' }).uncheck();
   await page.getByRole('button', { name: 'Close dialog' }).click();
   await page.getByRole('button', { name: 'View market', exact: true }).click();
-  await expect(page.getByRole('dialog').getByRole('article')).toHaveCount(MARKET_ASSETS.length);
+  const marketDialog = page.getByRole('dialog');
+  await expect(marketDialog).toContainText('REAL SOLANA CRYPTO MARKET · POWERED BY STONKFUN');
+  await expect(marketDialog.getByText(/NEW TOKENS|CRYPTO MARKET TEMPORARILY UNAVAILABLE/)).toBeVisible();
   await page.keyboard.press('Escape');
   await page.getByRole('button', { name: 'My activity', exact: true }).click();
   await expect(page.locator('.history-row')).toContainText('NOVA');
   await page.keyboard.press('Escape');
-  await page.getByRole('button', { name: /Simulation speed/ }).click();
-  await page.getByRole('button', { name: /Simulation speed/ }).click();
+  await page.getByRole('button', { name: /Game speed/ }).click();
+  await page.getByRole('button', { name: /Game speed/ }).click();
   await expect(page.locator('.phase-indicator')).toHaveText('LIVE RUMBLE', { timeout: 30000 });
   await page.waitForTimeout(7000);
   await expect(page.locator('.arena-bottom')).not.toContainText('0 ELIMINATIONS');

@@ -7,7 +7,7 @@ export const localAdapter: PersistenceAdapter = {
   load: () => JSON.parse(localStorage.getItem('pixel-rumble-v2') || localStorage.getItem('pixel-rumble-v1') || 'null') as unknown,
   save: data => localStorage.setItem('pixel-rumble-v2', JSON.stringify(data)),
 };
-export const freshSave = (): SaveData => ({ version: 2, balance: CONFIG.economy.startingBalance, predictions: [], transactions: [{ id: 'welcome', label: 'Welcome to the rumble · simulated USD', amount: CONFIG.economy.startingBalance, time: Date.now() }], settings: { ...DEFAULT_SETTINGS }, discoveries: [], achievements: [], roundsWatched: 0, totalWon: 0 });
+export const freshSave = (): SaveData => ({ version: 2, balance: CONFIG.economy.startingBalance, predictions: [], transactions: [{ id: 'welcome', label: 'Welcome to the rumble · in-game credits', amount: CONFIG.economy.startingBalance, time: Date.now() }], settings: { ...DEFAULT_SETTINGS }, discoveries: [], achievements: [], roundsWatched: 0, totalWon: 0 });
 const finite = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 export function loadSave(adapter: PersistenceAdapter): SaveData {
   try {
@@ -27,7 +27,7 @@ export function loadSave(adapter: PersistenceAdapter): SaveData {
       if (typeof v === 'boolean' && typeof save.settings[key] === 'boolean') Object.assign(save.settings, { [key]: v });
       if (finite(v) && typeof save.settings[key] === 'number') Object.assign(save.settings, { [key]: Math.min(1, Math.max(0, v)) });
     }
-    // Reload interrupts the local simulation: refund only unsettled predictions once.
+    // Reload interrupts the local game: refund only unsettled predictions once.
     for (const p of save.predictions.filter(p => p.status === 'pending')) {
       save.balance = roundMoney(save.balance + p.amount);
       save.transactions.unshift({ id: `refund-${p.id}`, label: `Interrupted round ${p.round} refunded`, amount: p.amount, time: Date.now() });

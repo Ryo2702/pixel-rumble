@@ -19,7 +19,7 @@ export function Leaderboard({ fighters, selected, select, inspect, phase, audien
       <span className="crowd-fighter-distribution"><span className="crowd-bar"><motion.i animate={{ width: `${share?.percent ?? 0}%` }} transition={{ duration: 0.35 }} style={{ background: fighter.color }}/></span><span>{share?.percent.toFixed(1) ?? '0.0'}% <b>{money(share?.amount ?? 0)}</b></span></span>
     </motion.button>; })}</div>
     {audience.distribution.filter(s => ['boss', 'fighters'].includes(s.fighterId)).map(share => <div className="boss-crowd-share" key={share.fighterId}><span>{share.name}</span><b>{share.percent.toFixed(1)}%</b><small>{money(share.amount)}</small></div>)}
-    <div className="roster-summary"><span className="live-dot"/><span>{phase === 'rumble' ? `${fighters.filter(f => f.health > 0).length} fighters alive` : 'All fighters ready'}</span><span>SIMULATED CROWD</span></div>
+    <div className="roster-summary"><span className="live-dot"/><span>{phase === 'rumble' ? `${fighters.filter(f => f.health > 0).length} fighters alive` : 'All fighters ready'}</span><span>IN-GAME CROWD</span></div>
     <button className="text-button roster-explore" onClick={() => inspect(selected)}>Fighter dossier<ChevronRight size={14}/></button>
   </aside>;
 }

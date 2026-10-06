@@ -2,10 +2,9 @@ import type { Plugin } from 'vite';
 import { developer } from './src/config/developer';
 
 const title = 'Pixel Rumble | 2D Pixel Auto-Battle Game';
-const description = `Watch pixel fighters battle, predict winners, climb simulated leaderboards, and experience a fictional crypto-inspired economy in Pixel Rumble, an interactive 2D auto-battle game by ${developer.name}.`;
-const simulation = 'Pixel Rumble is an entertainment project. All betting, balances, audience members, market activity, cryptocurrency prices, winnings, and transactions displayed inside the game are simulated. No real money or cryptocurrency is used.';
+const description = `Watch pixel fighters battle, follow in-game spectator predictions, and explore real public Solana token market data from StonkFun in Pixel Rumble, a 2D auto-battle game by ${developer.name}.`;
+const disclaimer = 'Pixel Rumble is an entertainment game. Predictions, balances, audience members, odds, winnings, and transactions are in-game mechanics. Token listings and market fields are read-only public data from StonkFun; game events never alter them. No real-money wagering or cryptocurrency payouts are supported.';
 const escape = (value: string) => value.replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]!);
-const developerLink = `<a href="${escape(developer.portfolio)}" target="_blank" rel="noopener noreferrer">${escape(developer.name)}</a>`;
 
 export function siteSeo(configuredUrl?: string, indexable = false): Plugin {
   const url = new URL(configuredUrl || 'http://localhost:5174/');
@@ -18,18 +17,17 @@ export function siteSeo(configuredUrl?: string, indexable = false): Plugin {
   const robots = `User-agent: *\n${canIndex ? `Allow: /\nSitemap: ${absolute('sitemap.xml')}` : 'Disallow: /'}\n`;
   const sitemap = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${canIndex ? ['', 'about.html'].map(path => `<url><loc>${escape(absolute(path))}</loc></url>`).join('') : ''}</urlset>\n`;
   const footer = `<footer class="site-footer app-shell">
-    <div class="footer-credit"><a class="footer-brand" href="/">PIXEL RUMBLE</a><p>Designed &amp; Developed by ${developerLink}</p><small>${developer.roles.map(escape).join(' • ')}</small></div>
-    <nav aria-label="Footer navigation"><a href="/">Arena</a><a href="/about.html">About &amp; Credits</a><a href="${escape(developer.portfolio)}" target="_blank" rel="noopener noreferrer">Developer Portfolio ↗</a></nav>
-    <p class="footer-disclaimer">Simulated dollars. Fictional spectators. No cash value.</p>
+    <a class="footer-brand" href="/">PIXEL RUMBLE</a>
+    <nav aria-label="Footer navigation"><a href="/">Arena</a><a href="/about.html">How It Works</a></nav>
+    <p class="footer-disclaimer">In-game credits. In-game spectators. No cash value.</p>
   </footer>`;
   const about = `<main id="main-content" class="about-page">
-    <nav aria-label="About navigation"><a href="/">← Back to the arena</a><a href="#credits">Developer credits</a></nav>
-    <h1>PIXEL RUMBLE <span>ABOUT &amp; CREDITS</span></h1>
-    <p>An experimental 2D pixel-art auto-rumble game featuring automated fighters, simulated betting, fictional audiences, leaderboards, and a simulated crypto-inspired market.</p>
-    <section aria-labelledby="what"><h2 id="what">What is Pixel Rumble?</h2><p>Pixel Rumble is an experimental 2D pixel-art auto-battle game where automated fighters compete inside dynamic arenas while spectators follow battles, predict outcomes using simulated dollars, and participate in a completely fictional game economy.</p></section>
-    <section aria-labelledby="how"><h2 id="how">How does Pixel Rumble work?</h2><p>Players watch autonomous pixel fighters battle, inspect fighter statistics, compare simulated odds, make fictional predictions, follow simulated audience activity, and track leaderboard performance across multiple rounds.</p></section>
-    <section aria-labelledby="money"><h2 id="money">Is Pixel Rumble real-money gambling?</h2><p>No. Pixel Rumble uses simulated balances and fictional betting mechanics for entertainment purposes. No deposits, withdrawals, real-money wagering, or cash prizes are supported.</p><p>${simulation}</p></section>
-    <section id="credits" aria-labelledby="who"><h2 id="who">Who developed Pixel Rumble?</h2><p>Pixel Rumble was designed and developed by ${developerLink}, a web developer specializing in web development, WordPress, and SEO.</p><p>${developer.roles.map(escape).join(' • ')}<br>${developer.additionalRoles.map(escape).join(' • ')}</p><p><a href="${escape(developer.portfolio)}" target="_blank" rel="noopener noreferrer">View Portfolio →</a></p></section>
+    <nav aria-label="How it works navigation"><a href="/">← Back to the arena</a></nav>
+    <h1>PIXEL RUMBLE <span>HOW IT WORKS</span></h1>
+    <p>A 2D pixel-art auto-rumble game featuring automated fighters, in-game predictions, in-game audiences, leaderboards, and read-only public Solana token discovery powered by StonkFun.</p>
+    <section aria-labelledby="what"><h2 id="what">What is Pixel Rumble?</h2><p>Pixel Rumble is a 2D pixel-art auto-battle game where automated fighters compete inside dynamic arenas while spectators follow battles, predict outcomes using in-game credits, and explore real public Solana token listings from StonkFun.</p></section>
+    <section aria-labelledby="how"><h2 id="how">How does Pixel Rumble work?</h2><p>Players watch autonomous pixel fighters battle, inspect fighter statistics, compare in-game odds, make in-game predictions, follow in-game audience activity, track leaderboard performance, and browse read-only Solana token prices, liquidity, volume, and launchable pairs supplied by StonkFun.</p></section>
+    <section aria-labelledby="money"><h2 id="money">Is Pixel Rumble real-money gambling?</h2><p>No. Pixel Rumble uses in-game balances and in-game betting mechanics for entertainment purposes. No deposits, withdrawals, real-money wagering, or cash prizes are supported.</p><p>${disclaimer}</p></section>
   </main>`;
   return {
     name: 'pixel-rumble-static-seo',
@@ -39,8 +37,8 @@ export function siteSeo(configuredUrl?: string, indexable = false): Plugin {
     transformIndexHtml(html, context) {
       const isAbout = context.filename.endsWith('/about.html');
       const canonical = absolute(isAbout ? 'about.html' : '');
-      const pageTitle = isAbout ? 'About & Credits | Pixel Rumble' : title;
-      const pageDescription = isAbout ? `Learn how Pixel Rumble works, explore its fictional game economy, and meet its developer and SEO specialist, ${developer.name}.` : description;
+      const pageTitle = isAbout ? 'How It Works | Pixel Rumble' : title;
+      const pageDescription = isAbout ? 'Learn how Pixel Rumble works, explore its in-game economy, and follow real public Solana token data from StonkFun.' : description;
       const person = { '@type': 'Person', '@id': `${developer.portfolio}#person`, name: developer.name, url: developer.portfolio, jobTitle: [...developer.roles, ...developer.additionalRoles] };
       const creator = { '@id': person['@id'] };
       const schema = { '@context': 'https://schema.org', '@graph': [

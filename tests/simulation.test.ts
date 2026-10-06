@@ -37,7 +37,7 @@ test('a full autonomous round validates wagers, resurrects fighters, settles onc
   assert.equal(game.save.balance, 9500 + p.payout + 150);
   assert.equal(game.save.roundsWatched, 1);
   assert.equal(game.save.transactions.filter(t => t.id.startsWith('watch-')).length, 1);
-  assert.ok(game.fighters.every(f => f.health >= 0 && f.health <= f.maxHealth && Number.isFinite(f.price)));
+  assert.ok(game.fighters.every(f => f.health >= 0 && f.health <= f.maxHealth && Number.isFinite(f.odds)));
   const balance = game.save.balance;
   settlePrediction(game.save, p, true);
   assert.equal(game.save.balance, balance);

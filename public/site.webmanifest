@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Pixel Rumble",
   "short_name": "Pixel Rumble",
-  "description": "A 2D pixel auto-battle arena with fictional predictions and a simulated economy.",
+  "description": "A 2D pixel auto-battle arena with in-game predictions and an in-game economy.",
   "lang": "en",
   "start_url": "/",
   "scope": "/",

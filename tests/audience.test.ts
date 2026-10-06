@@ -6,7 +6,6 @@ import { AudienceEngine } from '../src/simulation/audienceEngine';
 import { SeededRandom, generateSpectators } from '../src/simulation/spectatorGenerator';
 import { pickFighter, createAudienceBet } from '../src/simulation/bettingBehavior';
 import { emptyStats, periodKeys, rankSpectators } from '../src/simulation/leaderboardEngine';
-import { SimulatedMarketProvider } from '../src/simulation/simulatedMarket';
 import { money, payoutFor, roundMoney } from '../src/economy/money';
 import { validateWager } from '../src/economy/predictions';
 import { freshSave, loadSave } from '../src/economy/persistence';
@@ -120,10 +119,6 @@ test('boss bet types settle against their own outcomes; market shocks never affe
   audience.beginRound(5, fighters, 'BOSS INVASION'); tick(audience, fighters, 22);
   const pending = structuredClone(audience.export().pending);
   assert.equal(new Set(pending.map(p => p.type)).size, 4);
-  const market = new SimulatedMarketProvider(8), start = market.getQuotes();
-  market.signal({ kind: 'upset', fighter: 'BYTE', odds: 9.8 });
-  for (let i = 0; i < 80; i++) market.update(0.25);
-  assert.notDeepEqual(start, market.getQuotes());
   const outcomes = { winner: 'byte', team: 'boss', damage: 'nova', survival: 'tank' };
   const expected = pending.filter(p => p.fighterId === outcomes[p.type]).reduce((sum, b) => sum + payoutFor(b.amount, b.odds), 0);
   const result = audience.settle(outcomes, fighters[0])!;

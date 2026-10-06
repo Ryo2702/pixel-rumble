@@ -5,7 +5,7 @@ import { build, createServer } from 'vite';
 import { siteSeo } from '../seo';
 import { developer } from '../src/config/developer';
 
-test('production HTML exposes credits and linked structured data before JavaScript runs', async () => {
+test('production HTML exposes metadata and structured data before JavaScript runs', async () => {
   const result = await build({
     configFile: false, logLevel: 'silent', plugins: [siteSeo('https://pixel-rumble.test/', true)],
     build: { write: false, rollupOptions: { input: { game: 'index.html', about: 'about.html' } } },
@@ -20,12 +20,13 @@ test('production HTML exposes credits and linked structured data before JavaScri
     const html = asset(path);
     assert.match(html, /name="robots" content="index, follow, max-image-preview:large"/);
     assert.match(html, /name="twitter:card" content="summary_large_image"/);
-    assert.match(html, /target="_blank" rel="noopener noreferrer"/);
     assert.ok(html.includes(`name="author" content="${developer.name}"`));
     const canonical = `https://pixel-rumble.test/${path === 'index.html' ? '' : path}`;
     assert.ok(html.includes(`rel="canonical" href="${canonical}"`));
     assert.ok(html.includes(`property="og:url" content="${canonical}"`));
     assert.doesNotMatch(html, /<!--(?:seo-head|site-footer|about-content)-->/);
+    const body = html.split('<body>')[1].split('</body>')[0];
+    assert.doesNotMatch(body, /Designed &amp; Developed by|Developer Portfolio|Charles Aeron Pelayo/);
     const schema = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/s)![1]);
     const graph = schema['@graph'];
     const person = graph.find((node: { '@type': string }) => node['@type'] === 'Person');

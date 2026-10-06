@@ -22,14 +22,13 @@ export interface RoundResults {
   user: AudienceBet | null;
 }
 export interface LeaderboardEntry extends BettingStats { id: string; username: string; avatar: string; rank: number; winRate: number; favoriteFighter: string; isUser: boolean; }
-export interface MarketQuote { symbol: string; name: string; color: string; price: number; open: number; change: number; history: number[]; volume: number; }
 export interface AudienceSave {
   version: 1; rng: number; spectators: Spectator[]; user: Spectator; pending: AudienceBet[];
-  watchers: number; lastSettledRound: number; results: RoundResults | null; market: MarketQuote[];
+  watchers: number; lastSettledRound: number; results: RoundResults | null;
 }
 export interface AudienceSnapshot {
   watchers: number; betCount: number; totalBets: number; excitement: number; locked: boolean;
   recentBets: AudienceBet[]; distribution: CrowdShare[]; reactions: Reaction[]; results: RoundResults | null;
-  leaders: LeaderboardEntry[]; userRank: LeaderboardEntry; revision: number; market: MarketQuote[];
+  leaders: LeaderboardEntry[]; userRank: LeaderboardEntry; revision: number;
 }
 export type AudienceSignal = { kind: 'open' | 'lock' | 'kill' | 'critical' | 'respawn' | 'streak' | 'upset' | 'winner' | 'boss' | 'sudden' | 'large-bet'; fighter?: string; victim?: string; odds?: number; amount?: number; event?: RoundEvent; };

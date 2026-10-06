@@ -98,8 +98,6 @@
   .intro-right { display: flex; flex-direction: column; align-items: flex-end; gap: 18px; }
   .live-session { display: flex; align-items: center; gap: 7px; font: 8px var(--mono); letter-spacing: 1px; color: #afb69f; }
   .live-session svg { color: var(--lime); }
-  .how-to-button { display: flex; align-items: center; gap: 7px; font-size: 11px; color: #818896; padding: 0; }
-  .how-to-button > span { color: #b9bfcb; text-decoration: underline; text-underline-offset: 3px; margin-left: 5px; }
   .game-grid { display: grid; grid-template-columns: 211px minmax(0, 1fr) 272px; gap: 16px; align-items: start; }
   .panel { border: 1px solid var(--line); border-radius: 7px; background: var(--panel); overflow: hidden; }
   .panel-heading { min-height: 48px; display: flex; align-items: center; justify-content: space-between; padding: 0 15px; gap: 7px; border-bottom: 1px solid var(--line); }
@@ -130,9 +128,7 @@
   .game-about p { max-width: 940px; }
   .game-about p + p { margin-top: 6px; }
   .site-footer { flex-wrap: wrap; font-size: 11px; line-height: 1.8; }
-  .site-footer .footer-credit { display: block; }
   .site-footer .footer-brand { text-decoration: none; color: #bec2ca; }
-  .site-footer .footer-credit p { display: block; margin: 5px 0 2px; font-size: 11px; }
   .site-footer small { color: #a2aab7; font-size: 10px; }
   .site-footer nav, .about-page nav { display: flex; flex-wrap: wrap; gap: 12px 22px; }
   .site-footer .footer-disclaimer { font-size: 10px; }
@@ -540,8 +536,6 @@
     .page-intro p { font-size: 10px; line-height: 1.6; margin-top: 7px; }
     .intro-right { gap: 0; }
     .live-session { display: none; }
-    .how-to-button { font-size: 0; gap: 0; width: 26px; height: 26px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 50%; margin-bottom: 3px; }
-    .how-to-button > span, .how-to-button > svg:last-child { display: none; }
     .game-grid { display: flex; flex-direction: column; gap: 15px; position: relative; }
     .arena-panel { order: -2; width: 100%; margin-bottom: 47px; }
     .arena-screen { aspect-ratio: 1.4; }
@@ -625,7 +619,6 @@
     .manifesto-line { margin: 0; }
     footer { flex-wrap: wrap; gap: 17px; padding: 20px 16px; }
     footer p { order: 3; font-size: 8px; width: 100%; }
-    .site-footer .footer-credit p { font-size: 11px; }
     .site-footer nav { font-size: 12px; }
     .game-about { padding-left: 16px; padding-right: 16px; }
     .system-status { font-size: 6px; }
