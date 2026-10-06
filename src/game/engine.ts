@@ -3,6 +3,10 @@ import { calculateOdds, quotedOdds, settlePrediction, validateWager } from '../e
 import { loadSave, localAdapter } from '../economy/persistence';
 import type { PersistenceAdapter } from '../economy/persistence';
 import type { Boss, CombatEvent, FeedItem, Fighter, Hazard, Phase, Prediction, RoundEvent, SaveData, Settings, Snapshot } from '../types';
+import { AudienceEngine } from '../simulation/audienceEngine';
+import { predictionWon } from '../simulation/payoutEngine';
+import { recordResult } from '../simulation/leaderboardEngine';
+import { money, roundMoney } from '../economy/money';
 
 export class GameEngine {
   fighters: Fighter[];
@@ -13,6 +17,7 @@ export class GameEngine {
   event: RoundEvent = 'STANDARD RUMBLE';
   feed: FeedItem[] = [];
   save: SaveData;
+  audience: AudienceEngine;
   winner: string | null = null;
   boss: Boss | null = null;
   hazard: Hazard | null = null;
@@ -30,11 +35,15 @@ export class GameEngine {
 
   constructor(private adapter: PersistenceAdapter = localAdapter, private random: () => number = Math.random) {
     this.save = loadSave(adapter);
+    this.audience = new AudienceEngine(this.save.community);
+    if (!this.save.community) for (const p of [...this.save.predictions].reverse()) if (p.status !== 'pending') recordResult(this.audience.user, { ...p, spectatorId: 'you', username: 'YOU', avatar: '#d6f65c', isUser: true }, p.createdAt);
+    this.audience.user.balance = this.save.balance;
     this.round = Math.max(this.save.roundsWatched + 1, ...this.save.predictions.map(p => p.round + 1));
     this.arenaIndex = Math.floor((this.round - 1) / 2) % ARENAS.length;
     this.event = CONFIG.events[(this.round - 1) % CONFIG.events.length];
     this.fighters = FIGHTERS.map((f, i) => ({ ...f, health: f.maxHealth, x: 175 + (i % 4) * 200, y: 335 + Math.floor(i / 4) * 130, facing: i % 2 ? -1 : 1, moving: false, cooldown: i * 0.2, specialCooldown: 3 + i, respawn: 0, attackFlash: 0, hurtFlash: 0, invulnerable: 0, streak: 0, longestStreak: 3 + i % 4, roundKills: 0, roundDamage: 0, aliveTime: 0, odds: 1, change: 0, priceHistory: Array.from({ length: 24 }, (_, j) => f.price * (0.9 + j * 0.004 + Math.sin(j * 1.5 + i) * 0.03)), recent: Array.from({ length: 7 }, (_, n) => (n + i) % 3 !== 0), recentDeaths: 0, roundStartPrice: f.price, totalVolume: 12500 + i * 3120, popularity: 10 + (8 - i) * 2, targetId: null }));
     calculateOdds(this.fighters, this.arena);
+    this.audience.beginRound(this.round, this.fighters, this.event);
     this.addFeed('The gates are open', 'Choose your fighter. Make your call.', '#d8fa42', 'round');
     this.addFeed('Welcome to the underground', '8 fighters. One arena. Endless possibilities.', '#ac83ff', 'system');
     this.persist();
@@ -44,12 +53,19 @@ export class GameEngine {
   subscribe = (listener: () => void) => { this.listeners.add(listener); return () => this.listeners.delete(listener); };
   getSnapshot = () => this.snapshot;
   onEffect = (listener: (event: CombatEvent) => void) => { this.effectListeners.add(listener); return () => this.effectListeners.delete(listener); };
-  emit(event: CombatEvent) { this.effectListeners.forEach(listener => listener(event)); }
+  emit(event: CombatEvent) {
+    if (event.kind === 'hit' && event.critical) this.audience.signal({ kind: 'critical', fighter: this.fighters.find(f => f.id === event.fighterId)?.name, amount: event.amount });
+    if (event.kind === 'respawn') this.audience.signal({ kind: 'respawn', fighter: this.fighters.find(f => f.id === event.fighterId)?.name });
+    this.effectListeners.forEach(listener => listener(event));
+  }
   private publish() {
-    this.snapshot = { phase: this.phase, remaining: Math.ceil(this.remaining), round: this.round, arena: this.arena, event: this.event, fighters: this.fighters.map(f => ({ ...f, priceHistory: [...f.priceHistory], recent: [...f.recent] })), feed: [...this.feed], save: { ...this.save, settings: { ...this.save.settings }, predictions: this.save.predictions.map(p => ({ ...p })), transactions: [...this.save.transactions] }, winner: this.winner, boss: this.boss ? { ...this.boss } : null, roundKills: this.fighters.reduce((sum, f) => sum + f.roundKills, 0), speed: this.speed, storageError: this.storageError };
+    const { community: _community, ...uiSave } = this.save;
+    this.snapshot = { phase: this.phase, remaining: Math.ceil(this.remaining), round: this.round, arena: this.arena, event: this.event, fighters: this.fighters.map(f => ({ ...f, priceHistory: [...f.priceHistory], recent: [...f.recent] })), feed: [...this.feed], save: { ...uiSave, settings: { ...this.save.settings }, predictions: this.save.predictions.map(p => ({ ...p })), transactions: [...this.save.transactions] }, audience: this.audience.snapshot(), winner: this.winner, boss: this.boss ? { ...this.boss } : null, roundKills: this.fighters.reduce((sum, f) => sum + f.roundKills, 0), speed: this.speed, storageError: this.storageError };
     this.listeners.forEach(listener => listener());
   }
   private persist() {
+    this.audience.user.balance = this.save.balance;
+    this.save.community = this.audience.export();
     try { this.adapter.save(this.save); this.storageError = false; } catch { this.storageError = true; }
   }
   addFeed(text: string, detail: string, color: string, kind = 'combat') {
@@ -76,13 +92,14 @@ export class GameEngine {
     if (type === 'team' ? !['boss', 'fighters'].includes(fighterId) : !fighter) return 'Select an available fighter.';
     const baseOdds = type === 'team' ? (fighterId === 'boss' ? 2.4 : 1.65) : type === 'winner' ? fighter!.odds : 7.2;
     const prediction: Prediction = { id: `${Date.now()}-${this.round}`, round: this.round, fighterId, fighterName: type === 'team' ? (fighterId === 'boss' ? 'The Overlord' : 'The fighters') : fighter!.name, amount, odds: quotedOdds(baseOdds, this.event), type, status: 'pending', payout: 0, createdAt: Date.now() };
-    this.save.balance -= amount;
+    this.save.balance = roundMoney(this.save.balance - amount);
     this.save.predictions.unshift(prediction);
+    this.audience.addUserBet(prediction);
     this.save.transactions.unshift({ id: prediction.id, label: `${prediction.fighterName} · round ${this.round} prediction`, amount: -amount, time: Date.now() });
     this.save.predictions = this.save.predictions.slice(0, 100);
     this.save.transactions = this.save.transactions.slice(0, 100);
     this.achievement('Skin in the game');
-    this.addFeed(`You're backing ${prediction.fighterName}`, `RC ${amount.toLocaleString()} at ${prediction.odds.toFixed(2)}×`, '#d8fa42', 'prediction');
+    this.addFeed(`You're backing ${prediction.fighterName}`, `${money(amount)} at ${prediction.odds.toFixed(2)}×`, '#d8fa42', 'prediction');
     this.persist(); this.publish();
     return null;
   }
@@ -90,6 +107,7 @@ export class GameEngine {
   update(realDelta: number) {
     const dt = Math.min(realDelta, 0.05) * this.speed;
     this.elapsed += dt;
+    if (this.phase === 'rumble' && this.remaining <= 0.7) this.slowMotion = Math.max(this.slowMotion, 0.2);
     this.remaining -= dt;
     if (this.remaining <= 0) this.nextPhase();
     const combatDelta = dt * (this.slowMotion > 0 && !this.save.settings.reducedMotion ? 0.35 : 1);
@@ -105,6 +123,7 @@ export class GameEngine {
       this.marketClock += dt;
       if (this.marketClock > 3) { this.marketClock = 0; this.fighters.forEach(f => this.moveMarket(f, (this.random() - 0.5) * CONFIG.market.volatility)); }
     }
+    this.audience.update(dt, this.phase, this.remaining, this.fighters);
     this.publication += realDelta;
     if (this.publication >= 0.2) { this.publication = 0; this.publish(); }
   }
@@ -112,10 +131,12 @@ export class GameEngine {
     const phases: Phase[] = ['betting', 'locked', 'rumble', 'results', 'resurrection'];
     this.phase = phases[(phases.indexOf(this.phase) + 1) % phases.length];
     this.remaining = CONFIG.phases[this.phase];
-    if (this.phase === 'locked') this.addFeed('Predictions locked', 'No more calls. Time to settle this.', '#f3b95b', 'round');
+    if (this.phase === 'locked') { this.audience.lock(); this.addFeed('Betting locked', 'The crowd has spoken. Time to settle this.', '#f3b95b', 'round'); }
     if (this.phase === 'rumble') {
       if (this.event === 'BOSS INVASION') this.boss = { health: CONFIG.combat.bossHealth, maxHealth: CONFIG.combat.bossHealth, x: 480, y: 380, cooldown: 2, hurtFlash: 0 };
       this.addFeed(this.event === 'BOSS INVASION' ? 'The Overlord has arrived' : 'Let the rumble begin', this.event === 'BOSS INVASION' ? 'The fighters join forces. One life each.' : 'Most eliminations wins. Damage breaks ties.', '#d8fa42', 'round');
+      if (this.event === 'BOSS INVASION') this.audience.signal({ kind: 'boss' });
+      if (this.event === 'SUDDEN DEATH') this.audience.signal({ kind: 'sudden' });
     }
     if (this.phase === 'results') this.finishRound();
     if (this.phase === 'resurrection') this.fighters.forEach(f => this.resurrect(f));
@@ -136,6 +157,7 @@ export class GameEngine {
       if (this.event === 'TOKEN SURGE') this.moveMarket(f, 0.12 + this.random() * 0.1);
     });
     calculateOdds(this.fighters, this.arena);
+    this.audience.beginRound(this.round, this.fighters, this.event);
     this.addFeed(`Round ${this.round} · ${this.arena.name}`, this.event === 'STANDARD RUMBLE' ? 'A clean slate. Predictions are open.' : this.event, this.arena.color, 'round');
   }
   private tickCombat(dt: number) {
@@ -217,7 +239,7 @@ export class GameEngine {
     let amount = attacker.attack * WEAPONS[attacker.weapon].damage * CONFIG.combat.damageScale * (0.8 + this.random() * CONFIG.combat.randomness) * (1 - target.defense / 130) * rage;
     amount *= (critical ? 1.7 : 1) * (special ? 2 : 1) * (blocked ? 0.25 : 1) * (this.event === 'SUDDEN DEATH' ? 2.2 : 1);
     attacker.roundDamage += Math.min(target.health, amount);
-    this.emit({ kind: 'hit', x: target.x, y: target.y, sourceX: attacker.x, sourceY: attacker.y, ranged: attacker.class === 'Gunner', color: critical ? '#ffe778' : attacker.color, amount: Math.round(amount), critical, text: blocked ? 'BLOCK' : undefined });
+    this.emit({ kind: 'hit', x: target.x, y: target.y, sourceX: attacker.x, sourceY: attacker.y, ranged: attacker.class === 'Gunner', color: critical ? '#ffe778' : attacker.color, amount: Math.round(amount), critical, text: blocked ? 'BLOCK' : undefined, fighterId: attacker.id });
     this.damage(target, amount, attacker);
   }
   private attackBoss(attacker: Fighter, special: boolean) {
@@ -240,6 +262,8 @@ export class GameEngine {
       killer.kills++; killer.roundKills++; killer.streak++; killer.longestStreak = Math.max(killer.streak, killer.longestStreak);
       this.moveMarket(killer, CONFIG.market.kill * (1 + killer.streak * 0.15));
       if (killer.streak >= 3) this.addFeed(`${killer.name} is on a ${killer.streak} kill streak`, 'The arena has a new problem.', killer.color, 'streak');
+      const underdogLeading = killer.odds >= 8 && killer.roundKills >= Math.max(...this.fighters.map(f => f.roundKills));
+      this.audience.signal({ kind: killer.streak >= 3 ? 'streak' : underdogLeading ? 'upset' : 'kill', fighter: killer.name, victim: target.name, odds: killer.odds });
     }
     this.addFeed(`${killer?.name ?? hazardName ?? 'THE ARENA'} eliminated ${target.name}`, ['BOSS INVASION', 'NO RESPAWN'].includes(this.event) ? 'Out for this round' : `Reconstructing in ${CONFIG.combat.respawn}s`, killer?.color ?? '#ff7878', 'kill');
     this.emit({ kind: 'kill', x: target.x, y: target.y, color: target.color, text: `${killer?.name ?? 'ARENA'} → ${target.name}`, fighterId: target.id });
@@ -274,20 +298,21 @@ export class GameEngine {
     const damageWinner = [...this.fighters].sort((a, b) => b.roundDamage - a.roundDamage)[0].id;
     const survivor = [...this.fighters].sort((a, b) => b.aliveTime - a.aliveTime || b.health - a.health)[0].id;
     const teamWinner = this.boss && this.boss.health > 0 ? 'boss' : 'fighters';
+    const outcomes = { winner: this.winner, team: teamWinner, damage: damageWinner, survival: survivor };
     for (const p of this.save.predictions.filter(p => p.round === this.round && p.status === 'pending')) {
-      const actual = p.type === 'team' ? teamWinner : p.type === 'damage' ? damageWinner : p.type === 'survival' ? survivor : this.winner;
-      const payout = settlePrediction(this.save, p, p.fighterId === actual);
-      this.addFeed(payout ? `Prediction won · +RC ${payout.toLocaleString()}` : `Prediction lost · RC ${p.amount.toLocaleString()}`, `${p.fighterName} · ${p.odds.toFixed(2)}×`, payout ? '#d8fa42' : '#f58087', 'payout');
+      const payout = settlePrediction(this.save, p, predictionWon(p, outcomes));
+      this.addFeed(payout ? `Prediction won · +${money(payout)}` : `Prediction lost · ${money(p.amount)}`, `${p.fighterName} · ${p.odds.toFixed(2)}×`, payout ? '#d8fa42' : '#f58087', 'payout');
       this.emit({ kind: 'payout', x: 480, y: 300, color: payout ? '#d8fa42' : '#f58087', amount: payout - p.amount });
       if (payout) this.achievement('Called it');
       if (payout && p.odds >= 8) this.achievement('Underdog believer');
     }
-    this.save.balance += CONFIG.economy.spectatorReward;
+    this.audience.settle(outcomes, rank[0], this.save.predictions.find(p => p.round === this.round));
+    this.save.balance = roundMoney(this.save.balance + CONFIG.economy.spectatorReward);
     this.save.transactions.unshift({ id: `watch-${this.round}-${Date.now()}`, label: `Round ${this.round} spectator reward`, amount: CONFIG.economy.spectatorReward, time: Date.now() });
     this.save.transactions = this.save.transactions.slice(0, 100);
     this.save.roundsWatched++;
     if (this.save.roundsWatched >= 10) this.achievement('Arena regular');
-    this.addFeed(this.boss ? `${teamWinner === 'boss' ? 'The Overlord' : 'The fighters'} wins` : `${rank[0].name} takes the crown`, this.boss ? `Top damage: ${rank[0].name} · +RC ${CONFIG.economy.spectatorReward} spectator reward` : `${rank[0].roundKills} eliminations · +RC ${CONFIG.economy.spectatorReward} spectator reward`, rank[0].color, 'winner');
+    this.addFeed(this.boss ? `${teamWinner === 'boss' ? 'The Overlord' : 'The fighters'} wins` : `${rank[0].name} takes the crown`, this.boss ? `Top damage: ${rank[0].name} · +${money(CONFIG.economy.spectatorReward)} simulated reward` : `${rank[0].roundKills} eliminations · +${money(CONFIG.economy.spectatorReward)} simulated reward`, rank[0].color, 'winner');
     this.hazard = null;
     this.persist();
   }

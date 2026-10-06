@@ -1,3 +1,4 @@
+import type { AudienceSave, AudienceSnapshot } from './simulation/types';
 export type FighterClass = 'Assassin' | 'Brawler' | 'Tank' | 'Gunner' | 'Berserker' | 'Rogue';
 export type Phase = 'betting' | 'locked' | 'rumble' | 'results' | 'resurrection';
 export type EventKind = 'hit' | 'kill' | 'respawn' | 'special' | 'hazard' | 'phase' | 'payout';
@@ -23,7 +24,7 @@ export interface Prediction {
 export interface Transaction { id: string; label: string; amount: number; time: number; }
 export interface Settings { master: number; music: number; effects: number; sound: boolean; reducedMotion: boolean; shake: boolean; particles: number; hazards: boolean; }
 export interface SaveData {
-  version: 1; balance: number; predictions: Prediction[]; transactions: Transaction[]; settings: Settings;
+  version: 2; balance: number; predictions: Prediction[]; transactions: Transaction[]; settings: Settings; community?: AudienceSave;
   discoveries: string[]; achievements: string[]; roundsWatched: number; totalWon: number;
 }
 export interface FeedItem { id: number; text: string; detail: string; color: string; kind: string; time: number; }
@@ -32,5 +33,5 @@ export interface Hazard { x: number; y: number; radius: number; timer: number; a
 export interface Boss { health: number; maxHealth: number; x: number; y: number; cooldown: number; hurtFlash: number; }
 export interface Snapshot {
   phase: Phase; remaining: number; round: number; arena: ArenaConfig; event: RoundEvent; fighters: Fighter[];
-  feed: FeedItem[]; save: SaveData; winner: string | null; boss: Boss | null; roundKills: number; speed: number; storageError: boolean;
+  feed: FeedItem[]; save: Omit<SaveData, 'community'>; audience: AudienceSnapshot; winner: string | null; boss: Boss | null; roundKills: number; speed: number; storageError: boolean;
 }

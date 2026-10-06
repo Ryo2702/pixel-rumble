@@ -1,5 +1,6 @@
 import { CONFIG, WEAPONS } from '../config/game';
 import type { ArenaConfig, Fighter, Prediction, RoundEvent, SaveData } from '../types';
+import { money, payoutFor, roundMoney } from './money';
 
 export function calculateOdds(fighters: Fighter[], arena: ArenaConfig): void {
   const weights = fighters.map(f => {
@@ -17,18 +18,18 @@ export function quotedOdds(base: number, event: RoundEvent): number {
   return Math.round(base * (event === 'DOUBLE REWARDS' ? 2 : event === 'UNDERDOG BONUS' && base >= 8 ? 1.5 : 1) * 100) / 100;
 }
 export function validateWager(amount: number, balance: number): string | null {
-  if (!Number.isFinite(amount) || !Number.isInteger(amount)) return 'Enter a whole number of credits.';
-  if (amount < CONFIG.economy.minWager) return `Minimum prediction is RC ${CONFIG.economy.minWager}.`;
-  if (amount > CONFIG.economy.maxWager) return `Maximum prediction is RC ${CONFIG.economy.maxWager.toLocaleString()}.`;
-  if (amount > balance) return 'Not enough RUMBLE Credits.';
+  if (!Number.isFinite(amount) || Math.abs(amount - roundMoney(amount)) > 1e-8) return 'Enter a dollar amount with at most two decimal places.';
+  if (amount < CONFIG.economy.minWager) return `Minimum prediction is ${money(CONFIG.economy.minWager)}.`;
+  if (amount > CONFIG.economy.maxWager) return `Maximum prediction is ${money(CONFIG.economy.maxWager)}.`;
+  if (amount > balance) return 'Not enough simulated dollars.';
   return null;
 }
 export function settlePrediction(save: SaveData, prediction: Prediction, won: boolean): number {
   if (prediction.status !== 'pending') return 0;
   prediction.status = won ? 'won' : 'lost';
-  prediction.payout = won ? Math.round(prediction.amount * prediction.odds) : 0;
-  save.balance += prediction.payout;
-  save.totalWon += prediction.payout;
+  prediction.payout = won ? payoutFor(prediction.amount, prediction.odds) : 0;
+  save.balance = roundMoney(save.balance + prediction.payout);
+  save.totalWon = roundMoney(save.totalWon + prediction.payout);
   if (prediction.payout) save.transactions.unshift({ id: `payout-${prediction.id}`, label: `${prediction.fighterName} · round ${prediction.round} payout`, amount: prediction.payout, time: Date.now() });
   return prediction.payout;
 }

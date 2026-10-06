@@ -6,6 +6,7 @@ import type { GameEngine } from '../game/engine';
 import type { Snapshot } from '../types';
 import type { createArena } from '../game/renderer';
 import { Avatar } from './Primitives';
+import { money, signedMoney } from '../economy/money';
 
 export function Arena({ state, engine, selected, select }: { state: Snapshot; engine: GameEngine; selected: string; select: (id: string) => void }) {
   const host = useRef<HTMLDivElement>(null), frame = useRef<HTMLElement>(null), announcement = useRef<HTMLDivElement>(null);
@@ -29,6 +30,7 @@ export function Arena({ state, engine, selected, select }: { state: Snapshot; en
   function toggleAudio() { engine.setSettings({ sound: !state.save.settings.sound }); renderer.current?.sound(); }
   async function fullscreen() { try { if (document.fullscreenElement) await document.exitFullscreen(); else await frame.current?.requestFullscreen(); } catch { setError('Fullscreen is unavailable in this browser.'); } }
   const winner = state.fighters.find(f => f.id === state.winner);
+  const result = state.audience.results?.round === state.round ? state.audience.results : null;
   const phaseLabels = { betting: 'PREDICTIONS OPEN', locked: 'GET READY', rumble: 'LIVE RUMBLE', results: 'ROUND COMPLETE', resurrection: 'RECONSTRUCTING' };
   const progress = Math.max(0, Math.min(100, state.remaining / CONFIG.phases[state.phase] * 100));
   return <section className="arena-panel" ref={frame}>
@@ -37,8 +39,8 @@ export function Arena({ state, engine, selected, select }: { state: Snapshot; en
       {!loaded && <div className="arena-loading"><span className="loading-pixel"/><strong>{error || 'BOOTING THE UNDERGROUND...'}</strong>{error && <button onClick={() => window.location.reload()}>Retry</button>}</div>}
       {loaded && <div ref={announcement} className={`arena-announcement phase-${state.phase}`} key={state.phase}>
         {state.phase === 'betting' && <><span className="announcement-kicker">THE CALM BEFORE THE CHAOS</span><strong>MAKE YOUR CALL<span>_</span></strong><small>Predictions close in <b>{state.remaining}s</b></small></>}
-        {state.phase === 'locked' && <><span className="announcement-kicker">PREDICTIONS LOCKED</span><strong className="countdown">{state.remaining}</strong><small>LET THEM FIGHT.</small></>}
-        {state.phase === 'results' && winner && <><span className="announcement-kicker">{state.boss ? state.boss.health <= 0 ? 'THE FIGHTERS WIN' : 'THE OVERLORD WINS' : 'YOUR ROUND CHAMPION'}</span><Avatar fighter={winner} size={66}/><strong style={{ color: winner.color }}>{winner.name}</strong><small>{state.boss ? `${Math.round(winner.roundDamage)} damage · top fighter` : `${winner.roundKills} ELIMINATIONS · ${Math.round(winner.roundDamage)} DAMAGE`}</small></>}
+        {state.phase === 'locked' && <><span className="announcement-kicker">BETTING LOCKED · THE CROWD HAS SPOKEN</span><strong className="countdown">{state.remaining}</strong><small>LET THEM FIGHT.</small></>}
+        {state.phase === 'results' && winner && <><span className="announcement-kicker">{state.boss ? state.boss.health <= 0 ? 'THE FIGHTERS WIN' : 'THE OVERLORD WINS' : 'WINNER'}</span><Avatar fighter={winner} size={58}/><strong style={{ color: winner.color }}>{winner.name} {state.boss ? '· TOP FIGHTER' : 'WINS'}</strong><small>{result?.odds.toFixed(2)}× CLOSING ODDS · {winner.roundKills} ELIMINATIONS</small>{result && <><div className="winner-overlay-totals"><span><b>{result.winningBets.toLocaleString()}</b> WINNING BETS</span><span><b>{money(result.paid)}</b> PAID</span></div><div className="winner-overlay-user">YOUR RESULT <b className={result.user && result.user.payout < result.user.amount ? 'negative' : 'positive'}>{result.user ? signedMoney(result.user.payout - result.user.amount) : 'SPECTATING'}</b></div></>}<small>NEXT ROUND IN {state.remaining + CONFIG.phases.resurrection}s</small></>}
         {state.phase === 'resurrection' && <><span className="announcement-kicker">DEATH IS JUST A LOADING SCREEN</span><strong>RISE. RUMBLE. REPEAT.</strong><small>Reconstructing fighters...</small></>}
       </div>}
       {state.boss && state.phase === 'rumble' && <div className="boss-health"><span>THE OVERLORD <b>{Math.ceil(state.boss.health)} / {state.boss.maxHealth}</b></span><div><i style={{ width: `${state.boss.health / state.boss.maxHealth * 100}%` }}/></div></div>}

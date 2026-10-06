@@ -5,6 +5,7 @@ import { drawFighter, SPRITE_HEIGHT, SPRITE_WIDTH } from './sprites';
 import type { GameEngine } from './engine';
 import type { CombatEvent, Fighter } from '../types';
 import { ArcadeAudio } from './audio';
+import { createCrowd } from './crowd';
 
 type Particle = { sprite: Sprite; life: number; maxLife: number; vx: number; vy: number };
 type FloatingText = { text: Text; life: number; maxLife: number; vy: number };
@@ -21,6 +22,7 @@ export async function createArena(host: HTMLDivElement, engine: GameEngine, sele
   const background = new Container(), actorsLayer = new Container(), effects = new Container();
   actorsLayer.sortableChildren = true;
   world.addChild(background, actorsLayer, effects);
+  const crowd = createCrowd(); world.addChildAt(crowd.layer, 1);
   let selected = 'byte', arenaId = '', disposed = false;
   const audio = new ArcadeAudio(); audio.configure(engine.save.settings);
   let neonTexture: Texture | null = null;
@@ -111,6 +113,7 @@ export async function createArena(host: HTMLDivElement, engine: GameEngine, sele
   function effect(event: CombatEvent) {
     audio.effect(event);
     if (event.kind === 'hit') {
+      if (event.critical) crowd.cheer(0.12);
       burst(event.x, event.y, event.color, event.critical ? 16 : 5);
       floatText(event.x + (Math.random() - 0.5) * 20, event.y, event.text ?? `${event.critical ? 'CRIT ' : ''}${event.amount ?? ''}`, event.color, event.critical);
       if (event.sourceX !== undefined && event.sourceY !== undefined) {
@@ -119,6 +122,7 @@ export async function createArena(host: HTMLDivElement, engine: GameEngine, sele
       }
     }
     if (event.kind === 'kill') {
+      crowd.cheer(0.55);
       burst(event.x, event.y, event.color, 60);
       const killer = engine.fighters.find(f => event.text?.startsWith(`${f.name} →`));
       if (killer && killer.streak >= 3) announce(`${killer.name} · ${killer.streak} KILL STREAK`, killer.color);
@@ -133,6 +137,11 @@ export async function createArena(host: HTMLDivElement, engine: GameEngine, sele
     if (event.kind === 'special' || event.kind === 'hazard') { burst(event.x, event.y, event.color, 36); floatText(event.x, event.y, event.text?.toUpperCase() ?? '', event.color, true); }
     if (event.kind === 'phase' && event.text === 'rumble') announce(engine.event === 'BOSS INVASION' ? 'THE OVERLORD HAS ARRIVED' : 'LET THE RUMBLE BEGIN', engine.event === 'BOSS INVASION' ? '#ff839d' : '#d6f65c');
     if (event.kind === 'phase' && event.text === 'betting' && engine.event !== 'STANDARD RUMBLE') announce(engine.event, engine.arena.color);
+    if (event.kind === 'phase' && event.text === 'results') {
+      crowd.cheer(1.5);
+      const winner = engine.fighters.find(f => f.id === engine.winner);
+      if (winner) for (let i = 0; i < 5; i++) burst(230 + i * 125, 270, i % 2 ? winner.color : '#d6f65c', 65);
+    }
   }
   const unsubscribe = engine.onEffect(effect);
   const activateAudio = () => audio.enable(engine.save.settings);
@@ -165,6 +174,7 @@ export async function createArena(host: HTMLDivElement, engine: GameEngine, sele
     engine.update(dt); audio.configure(engine.save.settings); audio.ambient(engine.elapsed, engine.arena.music);
     if (arenaId !== engine.arena.id) drawBackground();
     engine.fighters.forEach(updateActor);
+    crowd.update(dt, engine.elapsed, engine.audience.activity.excitement + (engine.event === 'SUDDEN DEATH' && engine.phase === 'rumble' ? 0.8 : 0), engine.save.settings.reducedMotion);
     bossArt.visible = !!engine.boss && engine.boss.health > 0;
     if (engine.boss) { bossArt.position.set(engine.boss.x, engine.boss.y); bossArt.zIndex = engine.boss.y; bossArt.alpha = engine.boss.hurtFlash > 0 ? 0.6 : 1; }
     hazardArt.clear();
@@ -191,6 +201,6 @@ export async function createArena(host: HTMLDivElement, engine: GameEngine, sele
   return {
     select(id: string) { selected = id; },
     sound() { audio.enable(engine.save.settings); },
-    destroy() { disposed = true; observer.disconnect(); unsubscribe(); document.removeEventListener('visibilitychange', visibility); document.removeEventListener('click', activateAudio); document.removeEventListener('keydown', activateAudio); audio.destroy(); gsap.killTweensOf(world); gsap.killTweensOf(background); gsap.killTweensOf(cinematic); actors.forEach(a => gsap.killTweensOf(a.root)); app.destroy(true, { children: true }); atlasTexture.destroy(true); },
+    destroy() { disposed = true; observer.disconnect(); unsubscribe(); document.removeEventListener('visibilitychange', visibility); document.removeEventListener('click', activateAudio); document.removeEventListener('keydown', activateAudio); audio.destroy(); gsap.killTweensOf(world); gsap.killTweensOf(background); gsap.killTweensOf(cinematic); actors.forEach(a => gsap.killTweensOf(a.root)); app.destroy(true, { children: true }); crowd.destroy(); atlasTexture.destroy(true); },
   };
 }
