@@ -10,7 +10,6 @@ import { Arena } from './components/Arena';
 import { LivePanels } from './components/LivePanels';
 import { MarketTicker } from './components/CryptoMarket';
 import { CrowdHUD } from './components/AudiencePanels';
-import './audience.css';
 
 const Dialogs = lazy(() => import('./components/Dialogs').then(module => ({ default: module.Dialogs })));
 

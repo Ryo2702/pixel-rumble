@@ -11,7 +11,7 @@ npm run build
 npm test
 ```
 
-Vite prints the local URL. `npm run preview` serves the production build. Browser checks use `npx playwright test`; point `baseURL` in `playwright.config.ts` at your running server and set `executablePath` to your installed Chromium (or remove it to use Playwright's installed browser).
+Vite prints the local URL. `npm run preview` serves the production build. Browser checks use `npx playwright test`; set `PLAYWRIGHT_BASE_URL` to your running server (defaults to `http://127.0.0.1:5174`) and set `executablePath` in `playwright.config.ts` to your installed Chromium (or remove it to use Playwright's installed browser).
 
 ## Rules
 

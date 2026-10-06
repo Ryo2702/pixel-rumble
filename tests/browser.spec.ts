@@ -79,7 +79,7 @@ test('desktop predictions, profiles, settings, market, and a live round', async 
   await page.screenshot({ path: '/tmp/pixel-rumble-live.png', fullPage: true });
   await expect(page.locator('.phase-indicator')).toHaveText('ROUND COMPLETE', { timeout: 50000 });
   await expect(page.locator('.confirmed-prediction')).not.toContainText("YOU'RE IN.");
-  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pixel-rumble-v1')!));
+  const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('pixel-rumble-v2')!));
   expect(stored.roundsWatched).toBe(1);
   expect(stored.predictions[0].status).not.toBe('pending');
   const balance = stored.balance;
