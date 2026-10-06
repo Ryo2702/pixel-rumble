@@ -5,6 +5,7 @@ export default defineConfig(({ mode, command }) => {
   const env = loadEnv(mode, process.cwd(), '');
   return {
     plugins: [react(), siteSeo(env.SITE_URL, command === 'build' && mode === 'production' && !['preview', 'development'].includes(env.VERCEL_ENV))],
-    build: { rollupOptions: { input: { game: 'index.html', about: 'about.html' } } },
+    // Keep the original base → audience CSS order across both HTML entry points.
+    build: { cssCodeSplit: false, rollupOptions: { input: { game: 'index.html', about: 'about.html' } } },
   };
 });

@@ -2,6 +2,7 @@ import { test, expect } from '@playwright/test';
 import { MARKET_ASSETS } from '../src/config/audience';
 
 test('arena starts while its backdrop is still downloading and panels load on demand', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1080 });
   let release!: () => void;
   const pending = new Promise<void>(resolve => { release = resolve; });
   let requested = false;
