@@ -10,9 +10,12 @@
     "test": "tsx --test tests/*.test.ts"
   },
   "dependencies": {
+    "@fontsource/silkscreen": "^5.2.0",
     "@fontsource/space-grotesk": "^5.2.0",
     "@fontsource/space-mono": "^5.2.0",
-    "@fontsource/silkscreen": "^5.2.0",
+    "@wallet-standard/app": "^1.1.1",
+    "@wallet-standard/base": "^1.1.1",
+    "@wallet-standard/features": "^1.1.1",
     "gsap": "^3.13.0",
     "lucide-react": "^0.468.0",
     "motion": "^12.0.0",
