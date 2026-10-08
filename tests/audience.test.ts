@@ -31,7 +31,7 @@ test('seeded population and behavior are reproducible, varied, and financially b
   }
 });
 
-test('crowd simulated SOL sums exactly, odds move only while open, and accepted odds never drift', () => {
+test('crowd Rumble SOL sums exactly, odds move only while open, and accepted odds never drift', () => {
   const fighters = fixture().fighters, originalOdds = fighters.map(f => f.odds);
   const audience = new AudienceEngine(undefined, () => NOW, 23);
   audience.beginRound(1, fighters, 'STANDARD RUMBLE');

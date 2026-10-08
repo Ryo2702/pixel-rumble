@@ -8,7 +8,7 @@ export const localAdapter: PersistenceAdapter = {
   load: () => JSON.parse(localStorage.getItem('pixel-rumble-v3') || 'null') as unknown,
   save: data => localStorage.setItem('pixel-rumble-v3', JSON.stringify(data)),
 };
-export const freshSave = (): SaveData => ({ version: 3, balance: CONFIG.economy.startingBalance, predictions: [], transactions: [{ id: 'welcome', label: 'Welcome to the rumble · SIMULATED SOL', amount: CONFIG.economy.startingBalance, time: Date.now() }], settings: { ...DEFAULT_SETTINGS }, liveStats: emptyLiveStats(), liveHistory: [], liveOpenBets: [], discoveries: [], achievements: [], roundsWatched: 0, totalWon: 0 });
+export const freshSave = (): SaveData => ({ version: 3, balance: CONFIG.economy.startingBalance, predictions: [], transactions: [{ id: 'welcome', label: 'Welcome to the rumble · RUMBLE SOL', amount: CONFIG.economy.startingBalance, time: Date.now() }], settings: { ...DEFAULT_SETTINGS }, liveStats: emptyLiveStats(), liveHistory: [], liveOpenBets: [], discoveries: [], achievements: [], roundsWatched: 0, totalWon: 0 });
 const finite = (x: unknown): x is number => typeof x === 'number' && Number.isFinite(x);
 const amount = (x: unknown, allowNegative = false): x is number => typeof x === 'number' && Number.isSafeInteger(x) && x % SOL_CENTI_LAMPORTS === 0 && (allowNegative || x >= 0);
 export function loadSave(adapter: PersistenceAdapter): SaveData {
@@ -24,7 +24,7 @@ export function loadSave(adapter: PersistenceAdapter): SaveData {
     if (Array.isArray(value.liveHistory)) save.liveHistory = value.liveHistory.filter(validLiveRecord).slice(0, 100).map(record => ({ ...record }));
     if (Array.isArray(value.liveOpenBets)) save.liveOpenBets = value.liveOpenBets.filter(validLiveRecord).slice(0, 20).map(record => ({ ...record }));
     if (Array.isArray(value.predictions)) save.predictions = value.predictions.filter(p => p && typeof p.id === 'string' && typeof p.fighterId === 'string' && typeof p.fighterName === 'string' && Number.isSafeInteger(p.round) && p.round > 0 && amount(p.amount) && p.amount >= CONFIG.economy.minWager && p.amount <= CONFIG.economy.maxWager && finite(p.odds) && p.odds >= 1 && amount(p.payout) && finite(p.createdAt) && ['winner', 'team', 'damage', 'survival'].includes(p.type) && ['pending', 'won', 'lost'].includes(p.status)).slice(0, 100);
-    if (Array.isArray(value.transactions)) save.transactions = value.transactions.filter(t => t && typeof t.id === 'string' && amount(t.amount, true) && finite(t.time) && typeof t.label === 'string').slice(0, 100);
+    if (Array.isArray(value.transactions)) save.transactions = value.transactions.filter(t => t && typeof t.id === 'string' && amount(t.amount, true) && finite(t.time) && typeof t.label === 'string').slice(0, 100).map(t => t.id === 'welcome' ? { ...t, label: 'Welcome to the rumble · RUMBLE SOL' } : t);
     if (Array.isArray(value.discoveries)) save.discoveries = value.discoveries.filter(v => typeof v === 'string');
     if (Array.isArray(value.achievements)) save.achievements = value.achievements.filter(v => typeof v === 'string');
     for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof Settings)[]) {

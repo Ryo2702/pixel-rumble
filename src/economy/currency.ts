@@ -3,7 +3,7 @@ export const SOL_CENTI_LAMPORTS = 10_000_000;
 
 export const GAME_CURRENCY = {
   ticker: 'SOL',
-  label: 'Simulated SOL',
+  label: 'Rumble SOL',
   decimals: 2,
   minBet: 0.1,
   maxBet: 20,

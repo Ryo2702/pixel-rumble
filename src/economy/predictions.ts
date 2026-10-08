@@ -21,7 +21,7 @@ export function validateWager(amount: number, balance: number): string | null {
   if (!Number.isSafeInteger(amount) || amount % SOL_CENTI_LAMPORTS !== 0) return 'Enter a SOL amount with at most two decimal places.';
   if (amount < CONFIG.economy.minWager) return `Minimum bet is ${formatSOL(CONFIG.economy.minWager)}.`;
   if (amount > CONFIG.economy.maxWager) return `Maximum bet is ${formatSOL(CONFIG.economy.maxWager)}.`;
-  if (amount > balance) return 'Not enough simulated SOL.';
+  if (amount > balance) return 'Not enough Rumble SOL.';
   return null;
 }
 export function settlePrediction(save: SaveData, prediction: Prediction, won: boolean): number {

@@ -335,7 +335,7 @@ export class GameEngine {
     this.save.transactions = this.save.transactions.slice(0, 100);
     this.save.roundsWatched++;
     if (this.save.roundsWatched >= 10) this.achievement('Arena regular');
-    this.addFeed(this.boss ? `${teamWinner === 'boss' ? 'The Overlord' : 'The fighters'} wins` : `${rank[0].name} takes the crown`, this.boss ? `Top damage: ${rank[0].name} · +${formatSOL(CONFIG.economy.spectatorReward)} simulated SOL reward` : `${rank[0].roundKills} eliminations · +${formatSOL(CONFIG.economy.spectatorReward)} simulated SOL reward`, rank[0].color, 'winner');
+    this.addFeed(this.boss ? `${teamWinner === 'boss' ? 'The Overlord' : 'The fighters'} wins` : `${rank[0].name} takes the crown`, this.boss ? `Top damage: ${rank[0].name} · +${formatSOL(CONFIG.economy.spectatorReward)} in-game reward` : `${rank[0].roundKills} eliminations · +${formatSOL(CONFIG.economy.spectatorReward)} in-game reward`, rank[0].color, 'winner');
     this.hazard = null;
     this.persist();
   }

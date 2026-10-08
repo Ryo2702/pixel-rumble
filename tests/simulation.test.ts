@@ -76,6 +76,8 @@ test('win returns stake times locked odds; loss returns nothing; malformed saves
   const lost = { ...p, id: 'lost', status: 'pending' as const, payout: 0 };
   assert.equal(settlePrediction(save, lost, false), 0);
   assert.equal(save.balance, solToLamports(34));
+  const legacyWelcome = { ...freshSave(), transactions: [{ ...freshSave().transactions[0], label: 'legacy label' }] };
+  assert.equal(loadSave({ load: () => legacyWelcome, save: () => {} }).transactions[0].label, 'Welcome to the rumble · RUMBLE SOL');
   assert.equal(loadSave({ load: () => ({ version: 1, balance: -1 }), save: () => {} }).balance, CONFIG.economy.startingBalance);
   assert.equal(loadSave({ load: () => { throw Error('storage unavailable'); }, save: () => {} }).balance, CONFIG.economy.startingBalance);
 });
